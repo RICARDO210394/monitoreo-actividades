@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F3A5F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Logística">
+<meta http-equiv="Cache-Control" content="no-cache">
+<link rel="manifest" href="manifest-logistica.json">
+<link rel="apple-touch-icon" href="icono-logistica-192.png">
+<link rel="icon" href="icono-logistica-192.png">
+<title>Logística · Monitoreo de Actividades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F3F4F6;color:#111827;font-family:Inter,system-ui,sans-serif}
+input,select,textarea,button{font-family:inherit;font-size:15px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid #1D4ED8;outline-offset:1px}
+button{cursor:pointer}
+h1,h2,h3,p{margin:0}
+h2{font-size:18px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:20px}
+.kicker{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#4B5563}
+h1{font-size:30px;font-weight:700}
+nav{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid #D1D5DB}
+.tab{min-height:44px;padding:0 18px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:transparent;color:#4B5563;font-weight:600}
+.tab.on{border-bottom-color:#1D4ED8;color:#1D4ED8;font-weight:700}
+.card{background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-sm{display:flex;flex-direction:column;gap:12px;flex:1 1 220px}
+.stack>.stack-sm{flex:none}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.row.between{justify-content:space-between}
+.row.end{align-items:flex-end}
+.row.wide{gap:28px}
+.sep-top{border-top:2px solid #D1D5DB;padding-top:16px}
+.muted{color:#4B5563;font-size:14px}
+.sm{font-size:13px;font-weight:600}
+em{font-style:normal;font-weight:600}
+em.red{color:#991B1B}em.amber{color:#92400E}em.muted{font-weight:500}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:#374151}
+input,select,textarea{height:44px;padding:0 12px;border:1px solid #D1D5DB;border-radius:8px;background:#FFFFFF;color:#111827;min-width:0;width:100%}
+textarea{height:auto;padding:10px 12px;resize:vertical}
+.form{max-width:720px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:14px;padding:20px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.g2b{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px);gap:12px}
+.g2c{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr);gap:12px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.primary{min-height:48px;padding:0 18px;border:0;border-radius:8px;background:#1D4ED8;color:#FFFFFF;font-weight:700}
+.primary.grow{flex:1 1 160px}
+.primary.green{min-height:44px;background:#166534;font-size:14px}
+.ghost{min-height:44px;padding:0 14px;border:1px solid #D1D5DB;border-radius:8px;background:#FFFFFF;color:#374151;font-weight:600;font-size:14px}
+.ghost.blue{color:#1D4ED8;align-self:flex-start}.ghost.red{color:#991B1B}.ghost.green{border-color:#166534;color:#166534;font-weight:700}
+.link{min-height:44px;padding:0 14px;border:0;background:transparent;color:#1D4ED8;font-size:14px;font-weight:600}
+.chip{min-height:44px;padding:0 14px;border:1px solid #D1D5DB;border-radius:999px;background:#FFFFFF;color:#374151;font-size:14px;font-weight:600}
+.chip.on{background:#111827;border-color:#111827;color:#FFFFFF}
+.seg{min-height:44px;padding:0 16px;border:1px solid #D1D5DB;border-radius:8px;background:#FFFFFF;color:#374151;font-size:14px;font-weight:700}
+.seg.on{background:#1D4ED8;border-color:#1D4ED8;color:#FFFFFF}
+.msg{padding:10px 12px;border-radius:8px;font-size:14px;font-weight:600}
+.msg.ok{background:#DCFCE7;color:#166534}.msg.err{background:#FEE2E2;color:#991B1B}
+.empty{background:#FFFFFF;border:1px dashed #9CA3AF;border-radius:12px;padding:36px 20px;text-align:center;color:#4B5563;font-size:15px}
+.task{display:flex;flex-direction:column;gap:12px}
+.date{font-size:13px;font-weight:600;color:#4B5563}
+.desc{font-size:16px;font-weight:600;white-space:pre-wrap}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 16px;font-size:14px;color:#374151}
+.fields span{font-weight:600;color:#4B5563}
+.foot{border-top:1px solid #F3F4F6;padding-top:12px}
+.st{min-height:44px;padding:0 12px;border:1px solid #D1D5DB;border-radius:8px;background:#FFFFFF;color:#374151;font-size:14px;font-weight:600}
+.st.on{color:#FFFFFF}
+.pill-cad,.pill-pend{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#FEE2E2;color:#991B1B}
+.pill-pend{background:#FEF3C7;color:#92400E}
+.ring-n{font-weight:700;color:#111827}.ring-c{font-size:11px;font-weight:600;color:#4B5563}
+.big{border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.legend{flex:1 1 200px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.legend div{display:flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:50%;flex:none}
+.legend span{flex:1;color:#374151}
+.legend .sep{border-top:1px solid #F3F4F6;padding-top:6px}
+.legend .red span,.legend .red b{color:#991B1B;font-weight:600}
+.grid-days{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.grid-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.metric{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.day{display:flex;flex-direction:column;gap:12px;text-align:left;font:inherit;color:inherit;border-width:2px;width:100%}
+button.day.on{border-color:#1D4ED8;box-shadow:0 0 0 3px #DBEAFE}
+.day-t{font-size:16px;font-weight:700}
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#F3F4F6;color:#374151}
+.tag.hoy{background:#1D4ED8;color:#FFFFFF}
+.mini{display:flex;flex-direction:column;gap:3px;font-size:13px;color:#374151}
+.export{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:12px 14px}
+.export.locked{background:#F3F4F6;border-color:#D1D5DB}
+.export.locked span{color:#374151}
+.export span{flex:1 1 220px;font-size:14px;font-weight:600;color:#166534}
+.hday-wrap{padding:0;overflow:hidden}
+.hday{width:100%;display:flex;align-items:center;gap:16px;padding:14px 16px;border:0;background:#FFFFFF;text-align:left;font:inherit;color:inherit}
+.hday:hover{background:#F9FAFB}
+.hday.on{background:#EFF6FF;border-bottom:1px solid #DBEAFE}
+.hday-main{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.hday-main .mini{flex-direction:row;gap:4px 14px}
+.chev{font-size:13px;color:#1D4ED8;font-weight:700}
+.hday-body{padding:16px;display:flex;flex-direction:column;gap:12px;background:#F9FAFB}
+.sync{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;background:#F3F4F6;color:#374151}
+.sync i{width:9px;height:9px;border-radius:50%;background:#9CA3AF}
+.sync.green{background:#DCFCE7;color:#166534}.sync.green i{background:#16A34A}
+.sync.amber{background:#FEF3C7;color:#92400E}.sync.amber i{background:#F59E0B}
+.sync.red{background:#FEE2E2;color:#991B1B}.sync.red i{background:#DC2626}
+.nc-box{background:#FDF2F4;border:1px solid #EED3D9;border-radius:8px;padding:10px 12px;font-size:14px;color:#4C1D24;white-space:pre-wrap;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.nc-box span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#7A1F2E}
+.nc-box .link{min-height:36px;padding:0}
+.overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:50}
+.modal{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 32px));background:#FFFFFF;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.end-j{justify-content:flex-end}
+.primary.nc{background:#7A1F2E;min-height:44px}
+.times{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:#4B5563}
+.times b{color:#111827}
+.ok-box{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 12px;font-size:14px;color:#14532D;white-space:pre-wrap;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.ok-box span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#166534}
+.ok-box .link{min-height:36px;padding:0}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumb{width:72px;height:72px;padding:0;border:1px solid #D1D5DB;border-radius:8px;overflow:hidden;background:#F3F4F6}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pvs{display:flex;flex-wrap:wrap;gap:8px}
+.pv{position:relative;width:84px;height:84px;border-radius:8px;overflow:hidden;border:1px solid #D1D5DB;background:#F3F4F6}
+.pv img{width:100%;height:100%;object-fit:cover}
+.pv-x{position:absolute;top:2px;right:2px;width:28px;height:28px;border:0;border-radius:50%;background:rgba(17,24,39,.75);color:#FFFFFF;font-size:18px;line-height:1}
+.fotobtn{flex-direction:row;align-items:center;justify-content:center;min-height:48px;border:2px dashed #93C5FD;border-radius:10px;background:#EFF6FF;color:#1D4ED8;font-size:15px;font-weight:700;cursor:pointer}
+.fotobtn input{position:absolute;width:1px;height:1px;opacity:0}
+.modal{max-height:calc(100vh - 32px);overflow:auto}
+.lightbox{width:min(900px,calc(100% - 32px))}
+.lightbox img{width:100%;max-height:75vh;object-fit:contain;border-radius:8px;background:#111827}
+.primary:disabled{opacity:.6}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,140%);z-index:60;min-width:260px;max-width:calc(100% - 32px);background:#111827;color:#FFFFFF;border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;box-shadow:0 12px 30px rgba(0,0,0,.3);transition:transform .25s ease}
+.toast{pointer-events:none;visibility:hidden}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+.toast span{font-size:13px;color:#D1D5DB}
+.toast.green{background:#14532D}.toast.blue{background:#1E3A8A}.toast.red{background:#7F1D1D}
+.pill-ok{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#DCFCE7;color:#166534}
+.group-h{padding-bottom:6px;border-bottom:2px solid #D1D5DB}
+.alert{background:#7F1D1D;color:#FFFFFF;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;animation:pulse 1.6s ease-in-out infinite}
+.alert h2{font-size:17px}
+.alert .ghost{background:#FFFFFF;color:#7F1D1D;border-color:#FFFFFF}
+.alert .sm{color:#FECACA}
+label.inline{flex-direction:row;align-items:center;gap:8px;color:#FFFFFF}
+label.inline select{width:auto}
+.alert-item{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#991B1B;border-radius:10px;padding:10px 12px}
+.alert-txt{flex:1 1 240px;display:flex;flex-direction:column;gap:2px}
+.alert-txt span{font-size:13px;color:#FECACA}
+.alert .primary.green{background:#FFFFFF;color:#166534}
+input:disabled{background:#F3F4F6;color:#4B5563}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(185,28,28,.55)}50%{box-shadow:0 0 0 8px rgba(185,28,28,0)}}
+@media (prefers-reduced-motion:reduce){.alert{animation:none}}
+.desc-box{background:#F9FAFB;border-radius:8px;padding:10px 12px;font-size:15px;color:#111827;white-space:pre-wrap;display:flex;flex-direction:column;gap:4px}
+.desc-box span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#4B5563}
+.field{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:13px;font-weight:600;color:#374151}
+.today{display:inline-block;padding:6px 12px;border-radius:999px;background:#DBEAFE;color:#1E3A8A;font-size:13px;font-weight:700}
+.urg{min-height:44px;padding:0 16px;border:2px solid;border-radius:999px;background:#FFFFFF;color:#111827;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.urg i{width:12px;height:12px;border-radius:50%}
+.urg.on i{background:#FFFFFF !important}
+.msg.crit{background:#DC2626;color:#FFFFFF}
+@media (max-width:480px){.g2,.g2b,.g2c{grid-template-columns:minmax(0,1fr)}h1{font-size:24px}}
+/* ===== Versión teléfono (logística) ===== */
+body.m{background:#EEF1F5;-webkit-tap-highlight-color:transparent}
+body.m .wrap{max-width:560px;padding:0 12px calc(92px + env(safe-area-inset-bottom));gap:12px}
+body.m header{position:sticky;top:0;z-index:20;margin:0 -12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:#1F3A5F;color:#FFFFFF;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px}
+body.m header .kicker{color:#C7D2FE;font-size:11px;width:100%}
+body.m h1{font-size:19px;color:#FFFFFF}
+body.m .sync{margin:0;padding:3px 10px;font-size:11px}
+body.m nav#tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:1fr 1fr;gap:0;background:#FFFFFF;border-top:1px solid #D1D5DB;border-bottom:0;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+body.m .tab{min-height:62px;margin:0;border:0;border-top:3px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px}
+body.m .tab.on{border-top-color:#1D4ED8;border-bottom:0;background:#EFF6FF}
+body.m .tab svg{width:22px;height:22px}
+body.m .card{border-radius:14px;padding:14px}
+body.m h2{font-size:17px}
+body.m .fields{grid-template-columns:minmax(0,1fr);gap:4px}
+body.m .desc{font-size:15px}
+body.m .desc-box{font-size:16px}
+body.m .foot{flex-direction:column;align-items:stretch}
+body.m .foot>.row[role=group]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+body.m .st{min-height:54px;font-size:15px;border-radius:12px;padding:0 4px}
+body.m .times{font-size:12px}
+body.m .alert{border-radius:14px;padding:12px}
+body.m .alert h2{font-size:15px}
+body.m .alert-item .primary{width:100%;min-height:50px}
+body.m .modal{top:auto;bottom:0;left:0;right:0;transform:none;width:100%;max-height:92vh;border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+body.m .modal .end-j{display:grid;grid-template-columns:1fr 2fr}
+body.m .modal .end-j button{min-height:52px}
+body.m .fotos2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body.m .fotobtn{min-height:56px}
+body.m .toast{bottom:calc(76px + env(safe-area-inset-bottom))}
+body.m .big .row.wide{gap:16px;justify-content:center}
+body.m .grid-days{grid-template-columns:minmax(0,1fr)}
+body.m input,body.m textarea,body.m select{font-size:16px}
+</style>
+</head>
+<body class="m">
+<div class="wrap">
+<header>
+<div class="kicker">Logística · encargos asignados</div>
+<h1>Mis encargos</h1>
+<div id="sync" class="sync gray" role="status"></div>
+</header>
+<div id="alert"></div>
+<nav id="tabs" role="tablist" aria-label="Secciones"></nav>
+<main id="view"></main>
+<div id="modal"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+var MODO = 'logistica';
+/* ---------- Nube (Firebase Firestore) ----------
+   Pega aquí la configuración de tu proyecto Firebase
+   (Consola de Firebase › Configuración del proyecto › Tus apps › Configuración del SDK). */
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDEUTGLw6_R0DdYv1F6UNnamXUKubP_VYk",
+  authDomain: "monitoreo-actividades.firebaseapp.com",
+  projectId: "monitoreo-actividades",
+  storageBucket: "monitoreo-actividades.firebasestorage.app",
+  messagingSenderId: "608892892719",
+  appId: "1:608892892719:web:79037becff4f0fe52db8da"
+};
+var COLECCION = 'encargos';
+var MIGRADO_KEY = 'monitoreo-actividades-migrado';
+
+var cloud = { ready: false, col: null, state: 'local', msg: '' };
+function setSync(state, msg) { cloud.state = state; cloud.msg = msg || ''; renderSync(); }
+function renderSync() {
+  var el = document.getElementById('sync'); if (!el) return;
+  var map = {
+    local: ['Modo local · los datos solo están en este equipo', 'gray'],
+    conectando: ['Conectando con la nube…', 'gray'],
+    ok: ['Sincronizado en la nube', 'green'],
+    guardando: ['Guardando en la nube…', 'amber'],
+    offline: ['Sin conexión · se guardará al reconectar', 'amber'],
+    error: ['Error de la nube: ' + cloud.msg, 'red']
+  };
+  var m = map[cloud.state] || map.local;
+  el.className = 'sync ' + m[1];
+  el.innerHTML = '<i aria-hidden="true"></i>' + esc(m[0]);
+}
+function syncCloud(old, tasks) {
+  if (!cloud.ready) return;
+  var oldMap = {}, newMap = {}, batch = firebase.firestore().batch(), n = 0;
+  old.forEach(function (t) { oldMap[t.id] = t; });
+  tasks.forEach(function (t) {
+    newMap[t.id] = t;
+    if (!oldMap[t.id] || JSON.stringify(oldMap[t.id]) !== JSON.stringify(t)) { batch.set(cloud.col.doc(t.id), t); n++; }
+  });
+  Object.keys(oldMap).forEach(function (id) { if (!newMap[id]) { batch.delete(cloud.col.doc(id)); n++; } });
+  if (!n) return;
+  setSync(navigator.onLine ? 'guardando' : 'offline');
+  batch.commit().then(function () { setSync('ok'); }, function (e) { setSync('error', e.message || 'no se pudo guardar'); });
+}
+function startCloud() {
+  if (typeof firebase === 'undefined' || /PEGAR/.test(FIREBASE_CONFIG.apiKey)) { setSync('local'); return; }
+  setSync('conectando');
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+    firebase.auth().signInAnonymously().then(function () {
+      cloud.col = db.collection(COLECCION);
+      cloud.col.onSnapshot({ includeMetadataChanges: true }, function (snap) {
+        var remote = snap.docs.map(function (d) { return d.data(); });
+        var primera = !cloud.ready;
+        if (!cloud.ready) {
+          cloud.ready = true;
+          var migrado = false; try { migrado = localStorage.getItem(MIGRADO_KEY) === '1'; } catch (e) {}
+          if (!migrado) {
+            var ids = {}; remote.forEach(function (t) { ids[t.id] = 1; });
+            var faltan = S.tasks.filter(function (t) { return !ids[t.id]; });
+            if (faltan.length) {
+              var b = db.batch(); faltan.forEach(function (t) { b.set(cloud.col.doc(t.id), t); }); b.commit();
+              remote = remote.concat(faltan);
+            }
+            try { localStorage.setItem(MIGRADO_KEY, '1'); } catch (e) {}
+          }
+        }
+        remote.sort(function (a, b) { return (a.creado || 0) - (b.creado || 0); });
+        var prevT = S.tasks;
+        S.tasks = remote;
+        if (!primera) onRemoteChanges(prevT, remote);
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(remote)); } catch (e) {}
+        setSync(snap.metadata.hasPendingWrites ? (navigator.onLine ? 'guardando' : 'offline') : (snap.metadata.fromCache && !navigator.onLine ? 'offline' : 'ok'));
+        render();
+      }, function (e) { setSync('error', e.message || 'sin permiso'); });
+    }, function (e) { setSync('error', e.message || 'no se pudo iniciar sesión'); });
+  } catch (e) { setSync('error', e.message || 'configuración inválida'); }
+  window.addEventListener('online', function () { if (cloud.ready) setSync('ok'); });
+  window.addEventListener('offline', function () { if (cloud.ready) setSync('offline'); });
+}
+
+var STORE_KEY = 'monitoreo-actividades-v1';
+var URG_RANK = { 'Crítica': 0, 'Alta': 1, 'Media': 2, 'Baja': 3 };
+var EST_RANK = { 'Pendiente': 0, 'No cumplida': 1, 'Realizada': 2 };
+var URG_STYLE = {
+  'Crítica': 'background:#DC2626;color:#FFFFFF',
+  'Alta': 'background:#C2410C;color:#FFFFFF',
+  'Media': 'background:#FDE047;color:#713F12',
+  'Baja': 'background:#16A34A;color:#FFFFFF'
+};
+var URG_BORDER = { 'Crítica': '#DC2626', 'Alta': '#EA580C', 'Media': '#EAB308', 'Baja': '#22C55E' };
+var EST_COLOR = { 'Realizada': '#166534', 'Pendiente': '#B45309', 'No cumplida': '#991B1B' };
+var PILL = 'display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.02em;';
+
+function todayStr() {
+  var d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function fmtDate(s) {
+  if (!s) return '';
+  var p = s.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function emptyForm(fecha) {
+  return { fecha: fecha, plazo: '', solicitante: '', tipo: 'Realizar', lugar: '', descripcion: '', direccion: '', entrega: '', urgencia: 'Media' };
+}
+function addDays(s, n) {
+  var d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function diffDays(a, b) {
+  return Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 86400000);
+}
+function plazoDe(t) { return t.plazo || t.fecha; }
+function isVencido(t, today) { return t.estado === 'Pendiente' && plazoDe(t) < today; }
+function ringStyle(size, bg) {
+  return 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:' + bg;
+}
+function innerStyle(size) {
+  var i = size - Math.round(size * 0.24);
+  return 'width:' + i + 'px;height:' + i + 'px;border-radius:50%;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1';
+}
+/* Color del % realizado: <50% rojo; de 50% (amarillo) a 100% (verde) en degradado */
+function pctRGB(r) {
+  if (r < 0.5) return [0.80, 0.11, 0.11];
+  var t = Math.min(1, (r - 0.5) / 0.5), Y = [0.93, 0.72, 0.03], G = [0.09, 0.60, 0.25];
+  return [Y[0] + (G[0] - Y[0]) * t, Y[1] + (G[1] - Y[1]) * t, Y[2] + (G[2] - Y[2]) * t];
+}
+function darkRGB(c, r) { var k = r < 0.5 ? 1 : 0.62; return [c[0] * k, c[1] * k, c[2] * k]; }
+function rgbHex(c) { return '#' + c.map(function (v) { return ('0' + Math.round(v * 255).toString(16)).slice(-2); }).join('').toUpperCase(); }
+function rgbPdf(c) { return c.map(function (v) { return v.toFixed(3); }).join(' '); }
+function stats(list, today, size) {
+  var done = 0, pend = 0, fail = 0, venc = 0;
+  list.forEach(function (t) {
+    if (t.estado === 'Realizada') done++; else if (t.estado === 'No cumplida') fail++; else pend++;
+    if (isVencido(t, today)) venc++;
+  });
+  var total = list.length;
+  var a = total ? (done / total) * 100 : 0, b = total ? ((done + fail) / total) * 100 : 0;
+  var bg = total ? 'conic-gradient(#166534 0 ' + a + '%, #991B1B ' + a + '% ' + b + '%, #F59E0B ' + b + '% 100%)' : '#E5E7EB';
+  var pctTxt = total ? Math.round(a) + '%' : '—';
+  return {
+    total: total, done: done, pend: pend, fail: fail, venc: venc, pctTxt: pctTxt,
+    pctColor: total ? rgbHex(darkRGB(pctRGB(done / total), done / total)) : '#111827',
+    ringStyle: ringStyle(size, bg), innerStyle: innerStyle(size),
+    aria: total ? pctTxt + ' completado: ' + done + ' realizadas, ' + pend + ' pendientes, ' + fail + ' no cumplidas de ' + total : 'Sin encargos'
+  };
+}
+
+/* ---------- Exportación (PDF / Excel) ---------- */
+function estadoRep(t) { return t.estado === 'Pendiente' && isVencido(t, todayStr()) ? 'Caducada' : t.estado; }
+var EST_RGB = { 'Realizada': '0.09 0.40 0.20', 'Pendiente': '0.57 0.25 0.05', 'No cumplida': '0.60 0.11 0.11', 'Caducada': '0.60 0.11 0.11' };
+var EXP_COLS = [
+  ['N°', 24, function (t, i) { return String(i + 1); }],
+  ['Solicitante', 84, function (t) { return t.solicitante || ''; }],
+  ['Lugar de la solicitud', 84, function (t) { return t.lugar || ''; }],
+  ['Dirección o punto de entrega', 92, function (t) { return t.direccion || ''; }],
+  ['Descripción del encargo', 204, function (t) { return t.descripcion || ''; }],
+  ['Plazo máximo', 58, function (t) { return fmtDate(t.plazo || t.fecha); }],
+  ['Urgencia', 50, function (t) { return t.urgencia || ''; }],
+  ['Hora asig.', 40, function (t) { return t.creado ? fmtTime(t.creado) : '—'; }],
+  ['Hora cierre', 40, function (t) { return t.cerrado && t.estado !== 'Pendiente' ? (t.fecha && fmtDT(t.cerrado).slice(0, 10) !== fmtDate(t.fecha) ? fmtDT(t.cerrado).slice(0, 5) + ' ' : '') + fmtTime(t.cerrado) : '—'; }],
+  ['Estado', 94, function (t) { return estadoRep(t); }]
+];
+var WIN_ANSI = { '€': 128, '…': 133, '‘': 145, '’': 146, '“': 147, '”': 148, '•': 149, '–': 150, '—': 151 };
+function pdfStr(s) {
+  var out = '';
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i), c = s.charCodeAt(i);
+    if (ch === '(' || ch === ')' || ch === '\\') out += '\\' + ch;
+    else if (c >= 32 && c < 127) out += ch;
+    else {
+      var w = c <= 255 && c >= 160 ? c : WIN_ANSI[ch];
+      out += w ? '\\' + ('00' + w.toString(8)).slice(-3) : (c < 32 ? ' ' : '?');
+    }
+  }
+  return '(' + out + ')';
+}
+function arcPath(cx, cy, r, a0, a1) {
+  var segs = Math.max(1, Math.ceil(Math.abs(a1 - a0) / 90)), d = (a1 - a0) / segs, out = '';
+  for (var s = 0; s < segs; s++) {
+    var t1 = (a0 + d * s) * Math.PI / 180, t2 = (a0 + d * (s + 1)) * Math.PI / 180, k = 4 / 3 * Math.tan((t2 - t1) / 4);
+    var x0 = cx + r * Math.cos(t1), y0 = cy + r * Math.sin(t1), x3 = cx + r * Math.cos(t2), y3 = cy + r * Math.sin(t2);
+    var x1 = x0 - k * r * Math.sin(t1), y1 = y0 + k * r * Math.cos(t1), x2 = x3 + k * r * Math.sin(t2), y2 = y3 - k * r * Math.cos(t2);
+    if (!s) out += x0.toFixed(2) + ' ' + y0.toFixed(2) + ' m ';
+    out += [x1, y1, x2, y2, x3, y3].map(function (v) { return v.toFixed(2); }).join(' ') + ' c ';
+  }
+  return out;
+}
+function textW(s, size) { return s.length * size * 0.54; }
+function wrapText(text, width, size) {
+  var lines = [];
+  String(text).split(/\n/).forEach(function (para) {
+    var words = para.split(/\s+/).filter(Boolean), line = '';
+    if (!words.length) { lines.push(''); return; }
+    words.forEach(function (w) {
+      while (textW(w, size) > width) {
+        var n = Math.max(1, Math.floor(width / (size * 0.54)));
+        if (line) { lines.push(line); line = ''; }
+        lines.push(w.slice(0, n)); w = w.slice(n);
+      }
+      var tryL = line ? line + ' ' + w : w;
+      if (textW(tryL, size) > width) { lines.push(line); line = w; } else line = tryL;
+    });
+    if (line) lines.push(line);
+  });
+  return lines.length ? lines : [''];
+}
+function buildPdf(rows, title, subtitle, summary, fotos) {
+  var PW = 842, PH = 595, M = 36, FS = 8, LH = 10;
+  var pages = [], ops = [], y;
+  function txt(x, yy, s, font, size) { ops.push('BT /' + font + ' ' + size + ' Tf ' + x.toFixed(1) + ' ' + yy.toFixed(1) + ' Td ' + pdfStr(s) + ' Tj ET'); }
+  function header() {
+    var x = M, hl = EXP_COLS.map(function (c) { return wrapText(c[0], c[1] - 5, FS * 1.06); });
+    var h = Math.max.apply(null, hl.map(function (l) { return l.length; })) * LH + 8;
+    ops.push('0.86 0.90 0.95 rg ' + M + ' ' + (y - h).toFixed(1) + ' ' + (PW - 2 * M) + ' ' + h + ' re f 0 g');
+    hl.forEach(function (lines, ci) { lines.forEach(function (ln, li) { txt(x + 3, y - LH * (li + 1) - 1, ln, 'F2', FS); }); x += EXP_COLS[ci][1]; });
+    y -= h;
+  }
+  function newPage(first) {
+    if (ops.length) pages.push(ops);
+    ops = []; y = PH - M;
+    if (first) {
+      txt(M, y - 14, title, 'F2', 15); y -= 22;
+      txt(M, y - 10, subtitle, 'F1', 9); y -= 20;
+      if (summary) {
+        var bh = 72, bw = 360, bx = M + 12, by = y - 44, fw = bw * Math.max(0, Math.min(1, summary.ratio));
+        ops.push('0.95 0.96 0.97 rg ' + M + ' ' + (y - bh).toFixed(1) + ' ' + (PW - 2 * M) + ' ' + bh + ' re f 0 g');
+        var col = rgbPdf(darkRGB(pctRGB(summary.ratio), summary.ratio));
+        ops.push(col + ' rg'); txt(M + 12, y - 20, summary.main, 'F2', 13); ops.push('0 g');
+        ops.push('0.85 0.87 0.90 rg ' + bx + ' ' + by.toFixed(1) + ' ' + bw + ' 12 re f');
+        if (fw > 0) ops.push(rgbPdf(pctRGB(summary.ratio)) + ' rg ' + bx + ' ' + by.toFixed(1) + ' ' + fw.toFixed(1) + ' 12 re f');
+        ops.push('0.4 G 0.8 w ' + (bx + bw) + ' ' + (by - 3).toFixed(1) + ' m ' + (bx + bw) + ' ' + (by + 15).toFixed(1) + ' l S 0 g');
+        txt(bx + bw + 10, by + 2, summary.compare, 'F2', 10);
+        txt(M + 12, y - 63, summary.detail, 'F1', 10);
+        y -= bh + 12;
+      }
+    }
+    header();
+  }
+  newPage(true);
+  if (!rows.length) { txt(M, y - 16, 'No hay tareas registradas para este día.', 'F1', 10); }
+  rows.forEach(function (t, i) {
+    var cells = EXP_COLS.map(function (c) { var v = c[2](t, i); if (c[0] === 'Estado' && t.comentario && (t.estado === 'No cumplida' || t.estado === 'Realizada')) v += '\n' + (t.estado === 'No cumplida' ? 'Motivo: ' : 'Obs.: ') + t.comentario; if (c[0] === 'Estado' && t.fotos && t.fotos.length) v += '\n' + plural(t.fotos.length, 'foto', 'fotos') + ' (ver evidencias)'; return wrapText(v, c[1] - 6, FS); });
+    var n = Math.max.apply(null, cells.map(function (l) { return l.length; }));
+    var h = n * LH + 6;
+    if (y - h < M + 20) newPage(false);
+    var x = M;
+    cells.forEach(function (lines, ci) {
+      var isEst = EXP_COLS[ci][0] === 'Estado';
+      lines.forEach(function (ln, li) {
+        var est = isEst && li === 0;
+        if (est) ops.push((EST_RGB[ln] || '0 0 0') + ' rg');
+        txt(x + 3, y - 3 - LH * (li + 1) + 2, ln, est ? 'F2' : 'F1', FS);
+        if (est) ops.push('0 g');
+      });
+      x += EXP_COLS[ci][1];
+    });
+    y -= h;
+    ops.push('0.75 G 0.5 w ' + M + ' ' + y.toFixed(1) + ' m ' + (PW - M) + ' ' + y.toFixed(1) + ' l S');
+  });
+  /* Evidencias fotográficas */
+  var imgs = [], conFotos = rows.map(function (t, i) { return [t, i]; }).filter(function (p) { return fotos && p[0].fotos && p[0].fotos.some(function (id) { return fotos[id]; }); });
+  if (conFotos.length) {
+    pages.push(ops); ops = []; y = PH - M;
+    txt(M, y - 16, 'Evidencias fotográficas', 'F2', 15); y -= 30;
+    var BW = 172, BH = 128, G = 14;
+    conFotos.forEach(function (p) {
+      var t = p[0], list = t.fotos.filter(function (id) { return fotos[id]; });
+      var rowsNeeded = Math.ceil(list.length / 4);
+      if (y - 30 - BH < M + 10) { pages.push(ops); ops = []; y = PH - M; }
+      txt(M, y - 10, 'N° ' + (p[1] + 1) + ' · ' + t.descripcion.slice(0, 90) + ' · ' + estadoRep(t) + (t.cerrado ? ' ' + fmtTime(t.cerrado) : ''), 'F2', 10);
+      y -= 20;
+      list.forEach(function (id, k) {
+        if (k % 4 === 0 && k) y -= BH + G;
+        if (k % 4 === 0 && y - BH < M + 10) { pages.push(ops); ops = []; y = PH - M; }
+        var f = fotos[id], name = 'Im' + (imgs.length + 1);
+        imgs.push({ name: name, w: f.w, h: f.h, bin: atob(f.data.split(',')[1]) });
+        var sc = Math.min(BW / f.w, BH / f.h), dw = f.w * sc, dh = f.h * sc, x = M + (k % 4) * (BW + G);
+        ops.push('0.88 0.89 0.91 RG 0.5 w ' + x + ' ' + (y - BH).toFixed(1) + ' ' + BW + ' ' + BH + ' re S');
+        ops.push('q ' + dw.toFixed(2) + ' 0 0 ' + dh.toFixed(2) + ' ' + (x + (BW - dw) / 2).toFixed(2) + ' ' + (y - BH + (BH - dh) / 2).toFixed(2) + ' cm /' + name + ' Do Q');
+      });
+      y -= BH + G + 8;
+    });
+  }
+  pages.push(ops);
+  var total = pages.length;
+  pages.forEach(function (p, i) {
+    p.push('BT /F1 8 Tf ' + (PW - M - 60) + ' ' + (M - 16) + ' Td ' + pdfStr('Página ' + (i + 1) + ' de ' + total) + ' Tj ET');
+    p.push('BT /F1 8 Tf ' + M + ' ' + (M - 16) + ' Td ' + pdfStr('Monitoreo de Actividades') + ' Tj ET');
+  });
+  var objs = [];
+  objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  objs[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  var kids = [], imgBase = 5 + pages.length * 2, xo = '';
+  imgs.forEach(function (im, k) {
+    xo += '/' + im.name + ' ' + (imgBase + k) + ' 0 R ';
+    objs[imgBase + k] = '<< /Type /XObject /Subtype /Image /Width ' + im.w + ' /Height ' + im.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + im.bin.length + ' >>\nstream\n' + im.bin + '\nendstream';
+  });
+  pages.forEach(function (p, i) {
+    var po = 5 + i * 2, co = po + 1, stream = p.join('\n');
+    kids.push(po + ' 0 R');
+    objs[po] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PW + ' ' + PH + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>' + (xo ? ' /XObject << ' + xo + '>>' : '') + ' >> /Contents ' + co + ' 0 R >>';
+    objs[co] = '<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream';
+  });
+  objs[2] = '<< /Type /Pages /Kids [' + kids.join(' ') + '] /Count ' + pages.length + ' >>';
+  var out = '%PDF-1.4\n', offs = [];
+  for (var k = 1; k < objs.length; k++) { offs[k] = out.length; out += k + ' 0 obj\n' + objs[k] + '\nendobj\n'; }
+  var xref = out.length;
+  out += 'xref\n0 ' + objs.length + '\n0000000000 65535 f \n';
+  for (var k2 = 1; k2 < objs.length; k2++) out += ('0000000000' + offs[k2]).slice(-10) + ' 00000 n \n';
+  out += 'trailer\n<< /Size ' + objs.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF';
+  var bytes = new Uint8Array(out.length);
+  for (var b = 0; b < out.length; b++) bytes[b] = out.charCodeAt(b) & 255;
+  return bytes;
+}
+var CRC_T = null;
+function crc32(u8) {
+  if (!CRC_T) { CRC_T = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; } }
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < u8.length; i++) crc = CRC_T[(crc ^ u8[i]) & 255] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function zipFiles(files) {
+  var enc = new TextEncoder(), parts = [], central = [], off = 0;
+  function le(n, b) { var a = []; for (var i = 0; i < b; i++) a.push((n >>> (8 * i)) & 255); return a; }
+  files.forEach(function (f) {
+    var name = enc.encode(f[0]), data = enc.encode(f[1]), crc = crc32(data);
+    var common = [].concat(le(20, 2), le(0, 2), le(0, 2), le(0, 2), le(33, 2), le(crc, 4), le(data.length, 4), le(data.length, 4), le(name.length, 2), le(0, 2));
+    var local = new Uint8Array([].concat(le(0x04034b50, 4), common));
+    parts.push(local, name, data);
+    central.push(new Uint8Array([].concat(le(0x02014b50, 4), le(20, 2), common, le(0, 2), le(0, 2), le(0, 2), le(0, 4), le(off, 4))), name);
+    off += local.length + name.length + data.length;
+  });
+  var csize = central.reduce(function (s, p) { return s + p.length; }, 0);
+  var end = new Uint8Array([].concat(le(0x06054b50, 4), le(0, 2), le(0, 2), le(files.length, 2), le(files.length, 2), le(csize, 4), le(off, 4), le(0, 2)));
+  var all = parts.concat(central, [end]), len = all.reduce(function (s, p) { return s + p.length; }, 0);
+  var out = new Uint8Array(len), p = 0;
+  all.forEach(function (a) { out.set(a, p); p += a.length; });
+  return out;
+}
+function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ''); }
+function colRef(i) { var s = ''; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+function buildXlsx(rows, title, subtitle, summary) {
+  /* ---- registro de estilos ---- */
+  var fonts = ['<font><sz val="11"/><color rgb="FF1F2937"/><name val="Calibri"/></font>'];
+  var fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'];
+  var borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>'];
+  var xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'], xfKeys = {};
+  function idx(list, xml) { var i = list.indexOf(xml); if (i < 0) { list.push(xml); i = list.length - 1; } return i; }
+  function st(o) {
+    var k = JSON.stringify(o); if (xfKeys[k] != null) return xfKeys[k];
+    var f = idx(fonts, '<font>' + (o.b ? '<b/>' : '') + (o.i ? '<i/>' : '') + '<sz val="' + (o.sz || 11) + '"/><color rgb="FF' + (o.color || '1F2937') + '"/><name val="Calibri"/></font>');
+    var fl = o.fill ? idx(fills, '<fill><patternFill patternType="solid"><fgColor rgb="FF' + o.fill + '"/><bgColor indexed="64"/></patternFill></fill>') : 0;
+    var bc = o.bcolor || 'D1D5DB';
+    var bd = o.border ? idx(borders, '<border>' + ['left', 'right', 'top', 'bottom'].map(function (s) { return '<' + s + ' style="thin"><color rgb="FF' + bc + '"/></' + s + '>'; }).join('') + '<diagonal/></border>') : 0;
+    xfs.push('<xf numFmtId="' + (o.num || 0) + '" fontId="' + f + '" fillId="' + fl + '" borderId="' + bd + '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1" applyAlignment="1">' +
+      '<alignment horizontal="' + (o.h || 'left') + '" vertical="' + (o.v || 'center') + '"' + (o.wrap ? ' wrapText="1"' : '') + ' indent="' + (o.ind || 0) + '"/></xf>');
+    xfKeys[k] = xfs.length - 1; return xfKeys[k];
+  }
+  /* ---- celdas ---- */
+  var R = {}, merges = [];
+  function cell(c, r, v, s) {
+    if (!R[r]) R[r] = { c: {} };
+    R[r].c[c] = { v: v, s: s };
+  }
+  function height(r, h) { if (!R[r]) R[r] = { c: {} }; R[r].ht = h; }
+  function merge(a, b) { merges.push(a + ':' + b); }
+  var NC = EXP_COLS.length + 2, last = colRef(NC - 1);
+  var BLUE = '1F3A5F', HEAD = '2B4C7E';
+  var URG_FILL = { 'Crítica': ['FAD4D4', 'B91C1C'], 'Alta': ['FFE1CC', 'B5470B'], 'Media': ['FFF4C2', '8A6100'], 'Baja': ['DCF5E6', '1E7A45'] };
+  var EST_FILL = { 'Realizada': ['DCF5E6', '1E7A45'], 'Pendiente': ['FFF4C2', '8A6100'], 'Caducada': ['FAD4D4', 'B91C1C'], 'No cumplida': ['EED3D9', '7A1F2E'] };
+
+  // Título
+  for (var c0 = 0; c0 < NC; c0++) { cell(c0, 1, c0 ? '' : title, st({ b: true, sz: 18, color: 'FFFFFF', fill: BLUE, ind: 1 })); cell(c0, 2, c0 ? '' : subtitle, st({ i: true, sz: 10, color: '4B5563', fill: 'E8EEF6', ind: 1 })); }
+  merge('A1', last + '1'); merge('A2', last + '2'); height(1, 36); height(2, 20);
+
+  // Resumen
+  var n = summary.nums, ratio = summary.ratio;
+  var pc = rgbHex(pctRGB(ratio)).slice(1);
+  var lum = (function (c) { return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; })(pctRGB(ratio));
+  var pcText = lum > 0.55 ? '1F2937' : 'FFFFFF';
+  cell(1, 4, 'RESUMEN DEL DÍA', st({ b: true, sz: 10, color: 'FFFFFF', fill: HEAD, h: 'center', border: true, bcolor: HEAD })); cell(2, 4, '', st({ fill: HEAD, border: true, bcolor: HEAD }));
+  merge('B4', 'C4'); height(4, 18);
+  var lab = st({ b: true, sz: 10, border: true, fill: 'F9FAFB', ind: 1 });
+  var sumRows = [
+    ['% Realizado', ratio, st({ b: true, sz: 12, num: 9, h: 'center', border: true, fill: pc, color: pcText })],
+    ['Falta para el máximo', Math.max(0, 1 - ratio), st({ b: true, sz: 10, num: 9, h: 'center', border: true, fill: 'F3F4F6', color: ratio >= 1 ? '1E7A45' : 'B91C1C' })],
+    ['% Máximo (meta)', 1, st({ b: true, sz: 10, num: 9, h: 'center', border: true, fill: 'E8EEF6', color: BLUE })],
+    ['Realizadas', n.done, st({ b: true, sz: 10, h: 'center', border: true, fill: 'DCF5E6', color: '1E7A45' })],
+    ['Pendientes', n.pend, st({ b: true, sz: 10, h: 'center', border: true, fill: 'FFF4C2', color: '8A6100' })],
+    ['Caducadas', n.venc, st({ b: true, sz: 10, h: 'center', border: true, fill: 'FAD4D4', color: 'B91C1C' })],
+    ['No cumplidas', n.fail, st({ b: true, sz: 10, h: 'center', border: true, fill: 'EED3D9', color: '7A1F2E' })],
+    ['Total de tareas', n.total, st({ b: true, sz: 10, h: 'center', border: true, fill: 'E8EEF6', color: BLUE })]
+  ];
+  sumRows.forEach(function (s, i) { cell(1, 5 + i, s[0], lab); cell(2, 5 + i, s[1], s[2]); height(5 + i, i ? 16 : 20); });
+
+  // Tabla de tareas
+  var H = 16;
+  cell(0, H - 1, 'TAREAS DEL DÍA', st({ b: true, sz: 13, color: BLUE }));
+  height(H, 30);
+  EXP_COLS.concat([['Comentario'], ['Fotos']]).forEach(function (col, ci) { cell(ci, H, col[0], st({ b: true, color: 'FFFFFF', fill: HEAD, h: 'center', wrap: true, border: true, bcolor: '1F3A5F' })); });
+  rows.forEach(function (t, ri) {
+    var r = H + 1 + ri, zebra = ri % 2 ? 'F8FAFC' : 'FFFFFF';
+    EXP_COLS.forEach(function (col, ci) {
+      var v = col[2](t, ri), name = col[0], s;
+      if (name === 'Urgencia') { var u = URG_FILL[v] || ['E5E7EB', '1F2937']; s = st({ b: true, h: 'center', border: true, fill: u[0], color: u[1] }); }
+      else if (name === 'Estado') { var e = EST_FILL[v] || ['E5E7EB', '1F2937']; s = st({ b: true, h: 'center', border: true, fill: e[0], color: e[1] }); }
+      else if (name === 'N°' || name === 'Plazo máximo' || name === 'Tipo') s = st({ h: 'center', border: true, fill: zebra });
+      else s = st({ wrap: true, border: true, fill: zebra, v: 'center' });
+      cell(ci, r, name === 'N°' ? ri + 1 : v, s);
+    });
+    cell(EXP_COLS.length, r, t.estado !== 'Pendiente' ? (t.comentario || '') : '', st({ i: true, wrap: true, border: true, fill: zebra, color: t.estado === 'Realizada' ? '1E7A45' : '7A1F2E' }));
+    cell(EXP_COLS.length + 1, r, (t.fotos || []).length, st({ h: 'center', border: true, fill: zebra }));
+    var longest = Math.max(String(t.descripcion || '').length / 44, String(t.direccion || '').length / 24, String(t.lugar || '').length / 22, String(t.solicitante || '').length / 22, String(t.comentario || '').length / 30);
+    height(r, Math.max(24, Math.ceil(longest) * 15 + 8));
+  });
+
+  /* ---- hoja ---- */
+  var widths = [6, 22, 22, 24, 46, 13, 11, 10, 11, 15, 30, 8];
+  var rowNums = Object.keys(R).map(Number).sort(function (a, b) { return a - b; });
+  var sheetData = rowNums.map(function (r) {
+    var row = R[r], cols = Object.keys(row.c).map(Number).sort(function (a, b) { return a - b; });
+    return '<row r="' + r + '"' + (row.ht ? ' ht="' + row.ht + '" customHeight="1"' : '') + '>' + cols.map(function (c) {
+      var x = row.c[c], ref = colRef(c) + r;
+      if (typeof x.v === 'number') return '<c r="' + ref + '" s="' + x.s + '"><v>' + x.v + '</v></c>';
+      if (x.v === '') return '<c r="' + ref + '" s="' + x.s + '"/>';
+      return '<c r="' + ref + '" s="' + x.s + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(x.v) + '</t></is></c>';
+    }).join('') + '</row>';
+  }).join('');
+  var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="90"/></sheetViews><sheetFormatPr defaultRowHeight="15"/>' +
+    '<cols>' + widths.map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols>' +
+    '<sheetData>' + sheetData + '</sheetData>' +
+    '<mergeCells count="' + merges.length + '">' + merges.map(function (m) { return '<mergeCell ref="' + m + '"/>'; }).join('') + '</mergeCells>' +
+    '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/>' +
+    '<drawing r:id="rId1"/></worksheet>';
+  var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="' + fonts.length + '">' + fonts.join('') + '</fonts><fills count="' + fills.length + '">' + fills.join('') + '</fills>' +
+    '<borders count="' + borders.length + '">' + borders.join('') + '</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="' + xfs.length + '">' + xfs.join('') + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  /* ---- gráficos ---- */
+  var NS = 'xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  function chTitle(t) { return '<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1"/></a:pPr><a:r><a:rPr lang="es-EC" sz="1100" b="1"><a:solidFill><a:srgbClr val="1E3A8A"/></a:solidFill></a:rPr><a:t>' + xmlEsc(t) + '</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/>'; }
+  function fill(hex) { return '<c:spPr><a:solidFill><a:srgbClr val="' + hex + '"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr>'; }
+  function strRef(f, vals) { return '<c:strRef><c:f>' + f + '</c:f><c:strCache><c:ptCount val="' + vals.length + '"/>' + vals.map(function (v, i) { return '<c:pt idx="' + i + '"><c:v>' + xmlEsc(v) + '</c:v></c:pt>'; }).join('') + '</c:strCache></c:strRef>'; }
+  function numRef(f, vals, fmt) { return '<c:numRef><c:f>' + f + '</c:f><c:numCache><c:formatCode>' + fmt + '</c:formatCode><c:ptCount val="' + vals.length + '"/>' + vals.map(function (v, i) { return '<c:pt idx="' + i + '"><c:v>' + v + '</c:v></c:pt>'; }).join('') + '</c:numCache></c:numRef>'; }
+  function lbls(fmt, color, pos, pct) {
+    return '<c:dLbls><c:numFmt formatCode="' + fmt + '" sourceLinked="0"/><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900" b="1"><a:solidFill><a:srgbClr val="' + color + '"/></a:solidFill></a:defRPr></a:pPr><a:endParaRPr lang="es-EC"/></a:p></c:txPr>' +
+      (pos ? '<c:dLblPos val="' + pos + '"/>' : '') + '<c:showLegendKey val="0"/><c:showVal val="' + (pct ? 0 : 1) + '"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="' + (pct ? 1 : 0) + '"/><c:showBubbleSize val="0"/>' + (pct ? '<c:showLeaderLines val="0"/>' : '') + '</c:dLbls>';
+  }
+  var cats = ['Realizadas', 'Pendientes', 'Caducadas', 'No cumplidas'], vals = [n.done, n.pend, n.venc, n.fail];
+  var colors = ['2E9E5B', 'F2B134', 'E4572E', '9B2C2C'];
+  var chart1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ' + NS + '><c:roundedCorners val="0"/><c:chart>' + chTitle('Distribución de tareas') +
+    '<c:plotArea><c:layout/><c:doughnutChart><c:varyColors val="1"/><c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:v>Tareas</c:v></c:tx>' +
+    colors.map(function (col, i) { return '<c:dPt><c:idx val="' + i + '"/><c:bubble3D val="0"/>' + fill(col) + '</c:dPt>'; }).join('') +
+    lbls('0%;;;', 'FFFFFF', null, true) +
+    '<c:cat>' + strRef("'Reporte'!$B$8:$B$11", cats) + '</c:cat><c:val>' + numRef("'Reporte'!$C$8:$C$11", vals, 'General') + '</c:val></c:ser>' +
+    '<c:firstSliceAng val="0"/><c:holeSize val="58"/></c:doughnutChart></c:plotArea><c:legend><c:legendPos val="r"/><c:overlay val="0"/><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900"/></a:pPr><a:endParaRPr lang="es-EC"/></a:p></c:txPr></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart>' +
+    '<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="E5E7EB"/></a:solidFill></a:ln></c:spPr></c:chartSpace>';
+  var pctLabel = Math.round(ratio * 100) + '%';
+  var chart2 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><c:chartSpace ' + NS + '><c:roundedCorners val="0"/><c:chart>' + chTitle('Realizado: ' + pctLabel + ' de 100%') +
+    '<c:plotArea><c:layout/><c:doughnutChart><c:varyColors val="1"/><c:ser><c:idx val="0"/><c:order val="0"/><c:tx><c:v>Avance</c:v></c:tx>' +
+    '<c:dPt><c:idx val="0"/><c:bubble3D val="0"/>' + fill(pc) + '</c:dPt><c:dPt><c:idx val="1"/><c:bubble3D val="0"/>' + fill('E5E7EB') + '</c:dPt>' +
+    '<c:dLbls><c:dLbl><c:idx val="1"/><c:delete val="1"/></c:dLbl><c:numFmt formatCode="0%" sourceLinked="0"/><c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1400" b="1"><a:solidFill><a:srgbClr val="' + (lum > 0.55 ? '1F2937' : 'FFFFFF') + '"/></a:solidFill></a:defRPr></a:pPr><a:endParaRPr lang="es-EC"/></a:p></c:txPr>' +
+    '<c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/><c:showLeaderLines val="0"/></c:dLbls>' +
+    '<c:cat>' + strRef("'Reporte'!$B$5:$B$6", ['% Realizado', 'Falta para el máximo']) + '</c:cat><c:val>' + numRef("'Reporte'!$C$5:$C$6", [ratio, Math.max(0, 1 - ratio)], '0%') + '</c:val></c:ser>' +
+    '<c:firstSliceAng val="0"/><c:holeSize val="62"/></c:doughnutChart></c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100"/></a:pPr><a:endParaRPr lang="es-EC"/></a:p></c:txPr></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart>' +
+    '<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="E5E7EB"/></a:solidFill></a:ln></c:spPr></c:chartSpace>';
+  function anchor(id, rid, c1, r1, c2, r2, name) {
+    return '<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>' + c1 + '</xdr:col><xdr:colOff>76200</xdr:colOff><xdr:row>' + r1 + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>' + c2 + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + r2 + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>' +
+      '<xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="' + id + '" name="' + name + '"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="' + rid + '"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>';
+  }
+  var drawing = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    anchor(2, 'rId1', 3, 3, 5, 13, 'Distribucion') + '</xdr:wsDr>';
+  var REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
+  return zipFiles([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/><Override PartName="/xl/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + 'officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Reporte" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + 'worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="' + REL + 'styles" Target="styles.xml"/></Relationships>'],
+    ['xl/worksheets/sheet1.xml', sheet],
+    ['xl/worksheets/_rels/sheet1.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + 'drawing" Target="../drawings/drawing1.xml"/></Relationships>'],
+    ['xl/drawings/drawing1.xml', drawing],
+    ['xl/drawings/_rels/drawing1.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="' + REL + 'chart" Target="../charts/chart1.xml"/></Relationships>'],
+    ['xl/charts/chart1.xml', chart1],
+    ['xl/styles.xml', styles]
+  ]);
+}
+
+function findClaude() {
+  var ws = [window];
+  try { if (window.parent && window.parent !== window) ws.push(window.parent); } catch (e) {}
+  try { if (window.top && ws.indexOf(window.top) < 0) ws.push(window.top); } catch (e) {}
+  for (var i = 0; i < ws.length; i++) { try { var c = ws[i].claude; if (c && typeof c.use === 'function') return c; } catch (e) {} }
+  return null;
+}
+function saveFile(filename, bytes, mime) {
+  var c = findClaude();
+  var viaAnchor = function () {
+    var url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+    var a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    return 'saved';
+  };
+  if (!c) return Promise.resolve(viaAnchor());
+  return c.use('downloads').then(function (dl) {
+    if (!dl) return viaAnchor();
+    return dl.save({ filename: filename, data: new Blob([bytes], { type: mime }) }).then(function (r) { return r.status; });
+  });
+}
+
+
+/* ---------- Horas ---------- */
+function fmtTime(ts) { if (!ts) return ''; var d = new Date(ts); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+function fmtDT(ts) {
+  if (!ts) return '';
+  var d = new Date(ts), iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  return fmtDate(iso) + ' ' + fmtTime(ts);
+}
+function durTxt(a, b) {
+  if (!a || !b || b < a) return '';
+  var m = Math.round((b - a) / 60000);
+  if (m < 60) return m + ' min';
+  var hh = Math.floor(m / 60), mm = m % 60;
+  if (hh < 24) return hh + ' h' + (mm ? ' ' + mm + ' min' : '');
+  return Math.floor(hh / 24) + ' d ' + (hh % 24) + ' h';
+}
+
+/* ---------- Fotos (IndexedDB local + Firestore 'fotos') ---------- */
+var FOTO_CACHE = {}, MAX_FOTOS = 6;
+var idbP = null;
+function idb() {
+  if (idbP) return idbP;
+  idbP = new Promise(function (res) {
+    try {
+      var rq = indexedDB.open('monitoreo-fotos', 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore('fotos', { keyPath: 'id' }); };
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { res(null); };
+    } catch (e) { res(null); }
+  });
+  return idbP;
+}
+function idbGet(id) {
+  return idb().then(function (db) {
+    if (!db) return null;
+    return new Promise(function (res) {
+      try { var r = db.transaction('fotos').objectStore('fotos').get(id); r.onsuccess = function () { res(r.result || null); }; r.onerror = function () { res(null); }; } catch (e) { res(null); }
+    });
+  });
+}
+function idbPut(f) { return idb().then(function (db) { if (!db) return; try { db.transaction('fotos', 'readwrite').objectStore('fotos').put(f); } catch (e) {} }); }
+function idbDel(id) { return idb().then(function (db) { if (!db) return; try { db.transaction('fotos', 'readwrite').objectStore('fotos').delete(id); } catch (e) {} }); }
+function getFoto(id) {
+  if (FOTO_CACHE[id]) return Promise.resolve(FOTO_CACHE[id]);
+  return idbGet(id).then(function (f) {
+    if (f) { FOTO_CACHE[id] = f; return f; }
+    if (!cloud.ready) return null;
+    return firebase.firestore().collection('fotos').doc(id).get().then(function (d) {
+      var x = d.exists ? d.data() : null;
+      if (x) { FOTO_CACHE[id] = x; idbPut(x); }
+      return x;
+    }, function () { return null; });
+  });
+}
+function putFoto(f) {
+  FOTO_CACHE[f.id] = f; idbPut(f);
+  if (cloud.ready) firebase.firestore().collection('fotos').doc(f.id).set(f).catch(function (e) { setSync('error', 'no se pudo subir una foto: ' + (e.message || '')); });
+}
+function delFoto(id) {
+  delete FOTO_CACHE[id]; idbDel(id);
+  if (cloud.ready) firebase.firestore().collection('fotos').doc(id).delete().catch(function () {});
+}
+function compressImage(file) {
+  return new Promise(function (res, rej) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var MAX = 1280, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, MAX / Math.max(w, h));
+      w = Math.round(w * k); h = Math.round(h * k);
+      var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      var cx = cv.getContext('2d'); cx.fillStyle = '#FFFFFF'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      res({ id: 'f' + Date.now() + Math.random().toString(36).slice(2, 7), data: cv.toDataURL('image/jpeg', 0.7), w: w, h: h, ts: Date.now() });
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('imagen no válida')); };
+    img.src = url;
+  });
+}
+function hydrateFotos() {
+  Array.prototype.forEach.call(document.querySelectorAll('img[data-foto]'), function (el) {
+    if (el.getAttribute('src')) return;
+    var id = el.getAttribute('data-foto');
+    getFoto(id).then(function (f) { if (f) el.src = f.data; else el.alt = 'Foto no disponible'; });
+  });
+}
+function thumbs(ids, cls) {
+  if (!ids || !ids.length) return '';
+  return '<div class="thumbs">' + ids.map(function (id) {
+    return '<button type="button" class="thumb ' + (cls || '') + '" data-act="verfoto" data-val="' + esc(id) + '" aria-label="Ver foto"><img data-foto="' + esc(id) + '" alt="Foto de evidencia"></button>';
+  }).join('') + '</div>';
+}
+
+/* ---------- Sonidos, avisos y notificaciones ---------- */
+function tones(notes, type, gain) {
+  unlockAudio(); if (!audioCtx) return;
+  try {
+    var t0 = audioCtx.currentTime;
+    notes.forEach(function (n) {
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = n[0];
+      g.gain.setValueAtTime(0.0001, t0 + n[1]);
+      g.gain.exponentialRampToValueAtTime(gain || 0.3, t0 + n[1] + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + n[1] + n[2]);
+      o.connect(g); g.connect(audioCtx.destination); o.start(t0 + n[1]); o.stop(t0 + n[1] + n[2] + 0.05);
+    });
+  } catch (e) {}
+}
+function chimeNew() { tones([[784, 0, 0.35], [1047, 0.18, 0.5]], 'sine', 0.35); }
+function chimeDone() { tones([[523, 0, 0.3], [659, 0.14, 0.3], [784, 0.28, 0.55]], 'triangle', 0.35); }
+var toastT = null;
+function toast(title, body, kind) {
+  var el = document.getElementById('toast'); if (!el) return;
+  el.className = 'toast show ' + (kind || '');
+  el.innerHTML = '<b>' + esc(title) + '</b>' + (body ? '<span>' + esc(body) + '</span>' : '');
+  clearTimeout(toastT); toastT = setTimeout(function () { el.className = 'toast'; }, 6000);
+}
+function sysNotify(title, body) {
+  if (notifPerm() !== 'granted' || document.visibilityState === 'visible') return;
+  try { var n = new Notification(title, { body: body, tag: 'monitoreo-' + Date.now() }); n.onclick = function () { window.focus(); n.close(); }; } catch (e) {}
+}
+function avisoNueva(t, remoto) {
+  chimeNew();
+  toast(remoto ? 'Nueva consigna asignada' : 'Consigna registrada', t.urgencia + ' · ' + t.descripcion + ' · ' + fmtTime(t.creado), 'blue');
+  sysNotify('Nueva consigna (' + t.urgencia + ')', t.descripcion + (t.solicitante ? ' · ' + t.solicitante : ''));
+}
+function avisoCierre(t) {
+  if (t.estado === 'Realizada') {
+    chimeDone();
+    toast('Actividad cumplida', t.descripcion + ' · ' + fmtTime(t.cerrado) + (t.fotos && t.fotos.length ? ' · ' + plural(t.fotos.length, 'foto', 'fotos') : ''), 'green');
+    sysNotify('Actividad cumplida', t.descripcion + ' · ' + fmtTime(t.cerrado));
+  } else {
+    toast('Actividad no cumplida', t.descripcion + (t.comentario ? ' · ' + t.comentario : ''), 'red');
+    sysNotify('Actividad no cumplida', t.descripcion);
+  }
+}
+/* llamado por la nube cuando llegan cambios de otros equipos */
+function onRemoteChanges(prev, next) {
+  var old = {}; prev.forEach(function (t) { old[t.id] = t; });
+  next.forEach(function (t) {
+    var o = old[t.id];
+    if (!o) { if (t.creado && Date.now() - t.creado < 10 * 60000) avisoNueva(t, true); }
+    else if (o.estado !== t.estado && (t.estado === 'Realizada' || t.estado === 'No cumplida')) avisoCierre(t);
+  });
+}
+
+/* ---------- Ventana de cierre (Realizada / No cumplida) ---------- */
+function openCierre(id, estado) {
+  var t = findTask(id); if (!t) return;
+  var same = t.estado === estado;
+  set({ cl: { id: id, estado: estado, text: same ? (t.comentario || '') : '', keep: same ? (t.fotos || []).slice() : [], nuevas: [], edit: same, busy: false } });
+  setTimeout(function () { var el = document.querySelector('[data-modal]'); if (el) el.focus(); hydrateFotos(); }, 0);
+}
+function modalHtml() {
+  if (S.verFoto) {
+    var f = FOTO_CACHE[S.verFoto];
+    return '<div class="overlay" data-act="cerrarfoto"></div><div class="modal lightbox" role="dialog" aria-modal="true" aria-label="Foto">' +
+      (f ? '<img src="' + f.data + '" alt="Foto de evidencia">' : '<p class="muted">Cargando foto…</p>') +
+      '<div class="row end-j"><button type="button" class="ghost" data-act="cerrarfoto">Cerrar</button></div></div>';
+  }
+  if (!S.cl) return '';
+  var c = S.cl, t = findTask(c.id); if (!t) return '';
+  var ok = c.estado === 'Realizada';
+  var title = c.edit ? (ok ? 'Trabajo realizado' : 'Comentario de incumplimiento') : (ok ? 'Marcar como Realizada' : 'Marcar como No cumplida');
+  var prev = c.keep.map(function (id, i) {
+    return '<div class="pv"><img data-foto="' + esc(id) + '" alt="Foto"><button type="button" class="pv-x" data-act="clrmkeep" data-val="' + i + '" aria-label="Quitar foto">×</button></div>';
+  }).concat(c.nuevas.map(function (f, i) {
+    return '<div class="pv"><img src="' + f.data + '" alt="Foto nueva"><button type="button" class="pv-x" data-act="clrmnew" data-val="' + i + '" aria-label="Quitar foto">×</button></div>';
+  })).join('');
+  var nf = c.keep.length + c.nuevas.length;
+  return '<div class="overlay" data-act="clcancel"></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="cl-title">' +
+    '<h2 id="cl-title">' + title + '</h2>' +
+    '<p class="muted"><b>' + esc(t.descripcion) + '</b> · ' + esc(t.solicitante) + '<br>Asignada: ' + fmtDT(t.creado) +
+    (c.edit && t.cerrado ? ' · Cierre: ' + fmtDT(t.cerrado) : ' · Cierre: ahora (' + fmtTime(Date.now()) + ')') + '</p>' +
+    '<label>' + (ok ? 'Observación (opcional)' : 'Motivo o comentario (opcional)') + '<textarea data-modal="1" rows="3" placeholder="' +
+    (ok ? 'Ej.: documentos entregados en recepción.' : 'Ej.: el proveedor no llegó, faltó autorización…') + '">' + esc(c.text) + '</textarea></label>' +
+    '<div class="field"><span class="lbl">Fotos del trabajo (' + nf + ' de ' + MAX_FOTOS + ')</span>' +
+    (prev ? '<div class="pvs">' + prev + '</div>' : '') +
+    (nf < MAX_FOTOS ? (MODO === 'logistica'
+      ? '<div class="fotos2"><label class="fotobtn">📷 Tomar foto<input type="file" accept="image/*" capture="environment" data-fotos="1"></label>' +
+        '<label class="fotobtn">🖼 Galería<input type="file" accept="image/*" multiple data-fotos="1"></label></div>'
+      : '<label class="fotobtn">📷 Adjuntar fotos<input type="file" accept="image/*" multiple data-fotos="1"></label>') : '') + '</div>' +
+    (c.busy ? '<div class="msg ok">Procesando fotos…</div>' : '') +
+    '<div class="row end-j"><button type="button" class="ghost" data-act="clcancel">Cancelar</button>' +
+    '<button type="button" class="primary ' + (ok ? 'green' : 'nc') + '" data-act="clsave"' + (c.busy ? ' disabled' : '') + '>' +
+    (c.edit ? 'Guardar cambios' : ok ? 'Guardar como Realizada' : 'Guardar como No cumplida') + '</button></div></div>';
+}
+function saveCierre() {
+  var c = S.cl; if (!c || c.busy) return;
+  var t = findTask(c.id); if (!t) return set({ cl: null });
+  c.nuevas.forEach(putFoto);
+  (t.fotos || []).forEach(function (id) { if (c.keep.indexOf(id) < 0) delFoto(id); });
+  var upd = {
+    estado: c.estado, comentario: c.text.trim(),
+    cerrado: c.edit && t.cerrado ? t.cerrado : Date.now(),
+    fotos: c.keep.concat(c.nuevas.map(function (f) { return f.id; }))
+  };
+  persist(S.tasks.map(function (x) { return x.id === c.id ? Object.assign({}, x, upd) : x; }));
+  S.cl = null; render();
+  if (!c.edit) avisoCierre(findTask(c.id));
+}
+document.addEventListener('change', function (e) {
+  var inp = e.target;
+  if (!inp.getAttribute || !inp.getAttribute('data-fotos') || !S.cl) return;
+  var files = Array.prototype.slice.call(inp.files || [], 0, MAX_FOTOS - S.cl.keep.length - S.cl.nuevas.length);
+  if (!files.length) return;
+  S.cl.busy = true; render();
+  Promise.all(files.map(function (f) { return compressImage(f).catch(function () { return null; }); })).then(function (list) {
+    if (!S.cl) return;
+    S.cl.nuevas = S.cl.nuevas.concat(list.filter(Boolean)); S.cl.busy = false; render();
+  });
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  if (S.verFoto) set({ verFoto: null }); else if (S.cl) set({ cl: null });
+});
+
+/* ---------- Aplicación ---------- */
+function loadTasks() {
+  try { var l = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+}
+var S = {
+  tab: MODO === 'logistica' ? 'pendientes' : 'registro', tasks: loadTasks(), form: emptyForm(todayStr()), editId: null, error: '', ok: '',
+  resDate: '', expMsg: '', expErr: false,
+  cpView: 'dia', cpType: 'Todas', cpDate: '',
+  histFilter: 'Todas', histQ: '', histFrom: '', histTo: '', histOpen: null, expDay: ''
+};
+function set(p) { Object.assign(S, p); render(); }
+function persist(tasks) {
+  var old = S.tasks;
+  S.tasks = tasks;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); } catch (e) {}
+  syncCloud(old, tasks);
+}
+function esc(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+function sel(v, cur) { return v === cur ? ' selected' : ''; }
+
+/* ---------- Piezas ---------- */
+function chip(label, act, val, on, kind) {
+  return '<button type="button" class="' + (kind || 'chip') + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="' + act + '" data-val="' + esc(val) + '">' + esc(label) + '</button>';
+}
+function ring(st, size, big, caption) {
+  return '<div class="ring" role="img" aria-label="' + esc(st.aria) + '" style="' + st.ringStyle + '"><div style="' + st.innerStyle + '">' +
+    '<span class="ring-n" style="font-size:' + big + 'px' + (st.pctColor ? ';color:' + st.pctColor : '') + '">' + st.pctTxt + '</span>' + (caption ? '<span class="ring-c">' + caption + '</span>' : '') + '</div></div>';
+}
+function legend(st) {
+  return '<div class="legend">' +
+    '<div><i style="background:#166534"></i><span>Realizadas</span><b>' + st.done + '</b></div>' +
+    '<div><i style="background:#F59E0B"></i><span>Pendientes</span><b>' + st.pend + '</b></div>' +
+    '<div><i style="background:#991B1B"></i><span>No cumplidas</span><b>' + st.fail + '</b></div>' +
+    '<div class="sep red"><span>Caducadas (fuera de plazo)</span><b>' + st.venc + '</b></div>' +
+    '<div><span><strong>Total</strong></span><b>' + st.total + '</b></div></div>';
+}
+function miniCounts(d) {
+  return '<div class="mini"><div><b style="color:#166534">' + d.done + '</b> realizadas</div><div><b style="color:#92400E">' + d.pend + '</b> pendientes</div>' +
+    '<div><b style="color:#991B1B">' + d.fail + '</b> no cumplidas</div><div><b style="color:#991B1B">' + d.venc + '</b> caducadas</div></div>';
+}
+function card(t, today) {
+  var pl = plazoDe(t), info = '', infoCls = 'muted';
+  if (t.estado === 'Pendiente') {
+    var dd = diffDays(today, pl);
+    if (dd < 0) { info = '(vencido hace ' + (-dd) + (dd === -1 ? ' día)' : ' días)'); infoCls = 'red'; }
+    else if (dd === 0) { info = '(vence hoy)'; infoCls = 'red'; }
+    else if (dd === 1) { info = '(vence mañana)'; infoCls = 'amber'; }
+    else info = '(faltan ' + dd + ' días)';
+  }
+  var ven = isVencido(t, today);
+  var btns = ['Realizada', 'Pendiente', 'No cumplida'].map(function (e) {
+    var on = t.estado === e;
+    return '<button type="button" class="st' + (on ? ' on' : '') + '" style="' + (on ? 'background:' + EST_COLOR[e] + ';border-color:' + EST_COLOR[e] : '') + '" aria-pressed="' + on + '" data-act="estado" data-id="' + esc(t.id) + '" data-val="' + e + '">' + e + '</button>';
+  }).join('');
+  return '<article class="card task" style="border:2px solid ' + (URG_BORDER[t.urgencia] || '#E5E7EB') + '">' +
+    '<div class="row between"><div class="row"><span style="' + PILL + (URG_STYLE[t.urgencia] || URG_STYLE.Media) + '">' + esc(t.urgencia) + '</span>' +
+    '<span class="date">' + fmtDate(t.fecha) + '</span>' + (ven ? '<span class="pill-cad">Caducada</span>' : '') + '</div>' +
+    '<span style="' + PILL + 'background:' + EST_COLOR[t.estado] + ';color:#FFFFFF">' + esc(t.estado) + '</span></div>' +
+    '<div class="fields">' +
+    '<div><span>Solicitante: </span>' + esc(t.solicitante) + '</div>' +
+    '<div><span>Lugar de la solicitud: </span>' + esc(t.lugar || '—') + '</div>' +
+    '<div><span>Dirección o punto de entrega: </span>' + esc(t.direccion || '—') + '</div>' +
+    '<div><span>Plazo máximo: </span>' + fmtDate(pl) + ' <em class="' + infoCls + '">' + info + '</em></div></div>' +
+    '<div class="desc-box"><span>Descripción del encargo</span>' + esc(t.descripcion) + '</div>' +
+    '<div class="times"><span>🕒 Asignada: <b>' + (t.creado ? fmtDT(t.creado) : '—') + '</b></span>' +
+    (t.cerrado && t.estado !== 'Pendiente' ? '<span>' + (t.estado === 'Realizada' ? '✔ Finalizada' : '✖ Cerrada como no cumplida') + ': <b>' + fmtDT(t.cerrado) + '</b></span>' +
+      (durTxt(t.creado, t.cerrado) ? '<span>Tiempo: <b>' + durTxt(t.creado, t.cerrado) + '</b></span>' : '') : '') + '</div>' +
+    (t.estado === 'No cumplida'
+      ? '<div class="nc-box"><span>Motivo de incumplimiento</span>' + (t.comentario ? esc(t.comentario) : '<em class="muted">Sin comentario</em>') + thumbs(t.fotos) +
+        '<button type="button" class="link" data-act="nccomment" data-id="' + esc(t.id) + '">Editar comentario o fotos</button></div>'
+      : t.estado === 'Realizada'
+      ? '<div class="ok-box"><span>Trabajo realizado</span>' + (t.comentario ? esc(t.comentario) : '') + (t.fotos && t.fotos.length ? thumbs(t.fotos) : '<em class="muted">Sin fotos adjuntas</em>') +
+        '<button type="button" class="link" data-act="nccomment" data-id="' + esc(t.id) + '">' + (t.fotos && t.fotos.length ? 'Editar observación o fotos' : 'Adjuntar fotos') + '</button></div>'
+      : '') +
+    '<div class="row between foot"><div class="row" role="group" aria-label="Cambiar estado">' + btns + '</div>' +
+    (MODO === 'logistica' ? '' : '<div class="row"><button type="button" class="ghost blue" data-act="edit" data-id="' + esc(t.id) + '">Editar</button>' +
+    '<button type="button" class="ghost red" data-act="del" data-id="' + esc(t.id) + '">Eliminar</button></div>') + '</div></article>';
+}
+function empty(msg) { return '<div class="empty">' + esc(msg) + '</div>'; }
+
+/* ---------- Vistas ---------- */
+function viewRegistro() {
+  var f = S.form, today = todayStr(), tomorrow = addDays(today, 1);
+  var fecha = S.editId ? f.fecha : today;
+  var urg = ['Baja', 'Media', 'Alta', 'Crítica'].map(function (u) {
+    var on = f.urgencia === u;
+    return '<button type="button" class="urg' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="urg" data-val="' + u + '" style="' +
+      (on ? URG_STYLE[u] + ';border-color:' + URG_BORDER[u] : 'border-color:' + URG_BORDER[u]) + '"><i style="background:' + URG_BORDER[u] + '"></i>' + u + '</button>';
+  }).join('');
+  var plazo;
+  if (f.urgencia === 'Crítica') {
+    plazo = '<div class="msg crit">CRÍTICA · Entrega inmediata, hoy ' + fmtDate(today) + '. No se puede pasar a otro día y sonará una alarma hasta que se marque como realizada.</div>';
+  } else if (f.urgencia === 'Alta') {
+    plazo = '<div class="field"><span class="lbl">Plazo máximo (urgencia Alta: hoy o mañana)</span><span class="muted sm">Si llega el día límite y sigue pendiente, sonará la alarma hasta que se marque como realizada.</span><div class="row">' +
+      chip('Hoy · ' + fmtDate(today), 'plazo', today, (f.plazo || today) === today, 'seg') +
+      chip('Mañana · ' + fmtDate(tomorrow), 'plazo', tomorrow, f.plazo === tomorrow, 'seg') + '</div></div>';
+  } else {
+    plazo = '<label>Plazo máximo de entrega<input type="date" data-field="plazo" min="' + today + '" value="' + esc(f.plazo) + '"></label>' +
+      '<span class="muted sm">Si lo dejas vacío, el plazo es hoy.</span>';
+  }
+  return '<section class="card form" aria-label="Registrar encargo">' +
+    '<div class="row between"><h2>' + (S.editId ? 'Editar encargo' : 'Registrar encargo') + '</h2>' +
+    '<span class="today">' + (S.editId ? 'Registrado el ' + fmtDate(fecha) : 'Registro de hoy · ' + fmtDate(today)) + '</span></div>' +
+    '<div class="field"><span class="lbl">Nivel de urgencia</span><div class="row" role="group" aria-label="Nivel de urgencia">' + urg + '</div></div>' +
+    plazo +
+    '<label>Solicitante<input type="text" data-field="solicitante" value="' + esc(f.solicitante) + '" placeholder="Nombre de quien solicita"></label>' +
+    '<label>Lugar de la solicitud<input type="text" data-field="lugar" value="' + esc(f.lugar) + '" placeholder="Dónde se realiza la solicitud. Ej. Piazza Villa Club"></label>' +
+    '<label>Dirección o punto de entrega<input type="text" data-field="direccion" value="' + esc(f.direccion) + '" placeholder="Dirección o punto donde se entrega el encargo"></label>' +
+    '<label>Descripción del encargo<textarea data-field="descripcion" rows="3" placeholder="Qué se debe hacer">' + esc(f.descripcion) + '</textarea></label>' +
+    (S.ok && !S.error ? '<div class="msg ok" role="status">' + esc(S.ok) + '</div>' : '') +
+    (S.error ? '<div class="msg err" role="alert">' + esc(S.error) + '</div>' : '') +
+    '<div class="row"><button type="button" class="primary grow" data-act="save">' + (S.editId ? 'Guardar cambios' : 'Agregar encargo') + '</button>' +
+    (S.editId ? '<button type="button" class="ghost" data-act="cancel">Cancelar</button>' : '') + '</div></section>';
+}
+function viewResumen(today) {
+  var byDay = function (d) { return S.tasks.filter(function (t) { return t.fecha === d; }); };
+  var resDate = S.resDate || today;
+  var h = stats(byDay(today), today, 140);
+  var dates = [];
+  S.tasks.forEach(function (t) { if (dates.indexOf(t.fecha) < 0) dates.push(t.fecha); });
+  dates.sort().reverse();
+  var days = dates.map(function (date) {
+    var d = stats(byDay(date), today, 96), on = date === resDate;
+    var tag = date === today ? 'Hoy' : date < today ? 'Anterior' : 'Programada';
+    return '<button type="button" class="card day' + (on ? ' on' : '') + '" aria-pressed="' + on + '" data-act="resday" data-val="' + date + '">' +
+      '<div class="row between"><span class="day-t">' + fmtDate(date) + '</span><span class="tag' + (tag === 'Hoy' ? ' hoy' : '') + '">' + tag + '</span></div>' +
+      '<div class="row">' + ring(d, 96, 18) + miniCounts(d) + '</div><span class="muted sm">' + d.total + ' en total</span></button>';
+  }).join('');
+  var resList = byDay(resDate).sort(function (a, b) { return (EST_RANK[a.estado] - EST_RANK[b.estado]) || (URG_RANK[a.urgencia] - URG_RANK[b.urgencia]); });
+  var nDone = resList.filter(function (t) { return t.estado === 'Realizada'; }).length;
+  return '<section class="stack">' +
+    '<article class="card big"><div class="row between"><h2>Hoy</h2><span class="muted sm">' + fmtDate(today) + '</span></div>' +
+    '<div class="row wide">' + ring(h, 140, 28, 'completado') + legend(h) + '</div></article>' +
+    '<h2>Detalle por día</h2>' + (days ? '<div class="grid-days">' + days + '</div>' : empty('Aún no hay encargos registrados.')) +
+    '<div class="stack sep-top"><div class="row between"><h2>' + (resDate === today ? 'Tareas de hoy · ' : 'Tareas del ') + fmtDate(resDate) + '</h2>' +
+    '<span class="muted sm">Toca un día de arriba para ver sus tareas</span></div>' +
+    (MODO === 'logistica' ? '' : resDate === today
+      ? '<div class="export"><span>Reporte de hoy ' + fmtDate(resDate) + ': ' + plural(resList.length, 'tarea', 'tareas') + ' · ' + nDone + ' realizadas</span>' +
+        '<button type="button" class="ghost green" data-act="exp" data-val="pdf">Exportar PDF</button>' +
+        '<button type="button" class="primary green" data-act="exp" data-val="xlsx">Exportar Excel</button></div>'
+      : '<div class="export locked"><span>El reporte PDF y Excel solo se genera con las actividades del día de hoy (' + fmtDate(today) + ').</span>' +
+        '<button type="button" class="ghost green" data-act="resday" data-val="' + today + '">Ir a hoy</button></div>') +
+    (S.expMsg && S.expDay === resDate ? '<div class="msg ' + (S.expErr ? 'err' : 'ok') + '" role="status">' + esc(S.expMsg) + '</div>' : '') +
+    (resList.length ? resList.map(function (t) { return card(t, today); }).join('') : empty('No hay tareas registradas para este día.')) +
+    '</div></section>';
+}
+function viewGeneral(today) {
+  var g = stats(S.tasks, today, 180), tot = g.total;
+  var pct = function (n) { return tot ? Math.round((n / tot) * 100) + '%' : '—'; };
+  var metric = function (label, n, color) {
+    var p = tot ? (n / tot) * 100 : 0;
+    var st = { aria: label + ': ' + pct(n), pctTxt: pct(n), ringStyle: ringStyle(112, tot ? 'conic-gradient(' + color + ' 0 ' + p + '%, #E5E7EB ' + p + '% 100%)' : '#E5E7EB'), innerStyle: innerStyle(112) };
+    return '<article class="card metric">' + ring(st, 112, 24) + '<b>' + label + '</b><span class="muted sm">' + n + ' de ' + tot + '</span></article>';
+  };
+  var group = function (title, list) {
+    return '<h2>' + title + '</h2><div class="grid-days">' + list.map(function (x) {
+      var d = stats(x[1], today, 96);
+      return '<article class="card day"><span class="day-t">' + x[0] + '</span><div class="row">' + ring(d, 96, 18) + miniCounts(d) +
+        '</div><span class="muted sm">' + d.total + ' en total</span></article>';
+    }).join('') + '</div>';
+  };
+  var by = function (k, v) { return S.tasks.filter(function (t) { return t[k] === v; }); };
+  return '<section class="stack">' +
+    '<article class="card big"><div class="row between"><h2>Resumen general</h2><span class="muted sm">Todas las fechas · ' + tot + ' encargos</span></div>' +
+    '<div class="row wide">' + ring(g, 180, 36, 'cumplimiento') + '<div class="stack-sm">' + legend(g) +
+    '<button type="button" class="ghost blue" data-act="tab" data-val="caducadas">Ver tareas abiertas</button></div></div></article>' +
+    '<h2>Porcentajes por estado</h2><div class="grid-metrics">' +
+    metric('Cumplidas', g.done, '#166534') + metric('No cumplidas', g.fail, '#991B1B') +
+    metric('Pendientes en plazo', g.pend - g.venc, '#F59E0B') + metric('Caducadas', g.venc, '#7F1D1D') + '</div>' +
+    group('Cumplimiento por urgencia', ['Crítica', 'Alta', 'Media', 'Baja'].map(function (u) { return ['Urgencia ' + u, by('urgencia', u)]; })) +
+    group('Cumplimiento por tipo', [['Encargos a realizar', by('tipo', 'Realizar')], ['Encargos a retirar', by('tipo', 'Retirar')]]) +
+    '</section>';
+}
+function viewCad(today) {
+  var open = S.tasks.filter(function (t) { return t.estado === 'Pendiente'; });
+  var srt = function (a, b) {
+    return ((isVencido(b, today) ? 1 : 0) - (isVencido(a, today) ? 1 : 0)) || (URG_RANK[a.urgencia] - URG_RANK[b.urgencia]) || (plazoDe(a) < plazoDe(b) ? -1 : plazoDe(a) > plazoDe(b) ? 1 : 0);
+  };
+  var nCad = open.filter(function (t) { return isVencido(t, today); }).length;
+  var head = '<div class="card stack-sm"><div class="row between"><h2>Caducadas y pendientes</h2><div class="row">' +
+    '<span class="pill-cad">' + plural(nCad, 'caducada', 'caducadas') + '</span><span class="pill-pend">' + plural(open.length - nCad, 'pendiente', 'pendientes') + '</span></div></div>' +
+    '<p class="muted">Encargos que siguen abiertos. Las caducadas ya pasaron su plazo máximo. Al marcarlas como Realizada o No cumplida pasan al historial.</p>' +
+    '<div class="row" role="group" aria-label="Tipo de vista">' + chip('General por día', 'cpview', 'dia', S.cpView === 'dia', 'seg') + chip('Filtrar', 'cpview', 'filtro', S.cpView === 'filtro', 'seg') + '</div>';
+  var body = '';
+  if (S.cpView === 'filtro') {
+    var list = open.filter(function (t) {
+      if (S.cpDate && t.fecha !== S.cpDate) return false;
+      var v = isVencido(t, today);
+      return !(S.cpType === 'Caducadas' && !v) && !(S.cpType === 'Pendientes' && v);
+    }).sort(srt);
+    head += '<div class="row end sep-top"><label>Día<input type="date" data-filter="cpDate" value="' + esc(S.cpDate) + '"></label>' +
+      '<button type="button" class="ghost" data-act="cpall">Todos los días</button><div class="row">' +
+      chip('Caducadas y pendientes', 'cptype', 'Todas', S.cpType === 'Todas') + chip('Solo caducadas', 'cptype', 'Caducadas', S.cpType === 'Caducadas') +
+      chip('Solo pendientes', 'cptype', 'Pendientes', S.cpType === 'Pendientes') + '</div></div>' +
+      '<div class="muted sm"><b>Mostrando ' + plural(list.length, 'tarea', 'tareas') + (S.cpDate ? ' del ' + fmtDate(S.cpDate) : ' de todos los días') + '</b></div>';
+    body = list.length ? list.map(function (t) { return card(t, today); }).join('') : empty('No hay tareas con estos filtros.');
+  } else {
+    var dates = [];
+    open.forEach(function (t) { if (dates.indexOf(t.fecha) < 0) dates.push(t.fecha); });
+    dates.sort();
+    body = dates.length ? dates.map(function (d) {
+      var l = open.filter(function (t) { return t.fecha === d; }).sort(srt);
+      var c = l.filter(function (t) { return isVencido(t, today); }).length;
+      return '<div class="stack-sm"><div class="row between group-h"><h3>' + (d === today ? 'Hoy · ' : '') + fmtDate(d) + '</h3><div class="row">' +
+        '<span class="pill-cad">' + plural(c, 'caducada', 'caducadas') + '</span><span class="pill-pend">' + plural(l.length - c, 'pendiente', 'pendientes') + '</span></div></div>' +
+        l.map(function (t) { return card(t, today); }).join('') + '</div>';
+    }).join('') : empty('No hay tareas pendientes ni caducadas.');
+  }
+  return '<section class="stack">' + head + '</div>' + body + '</section>';
+}
+function viewHist(today) {
+  var q = S.histQ.trim().toLowerCase();
+  var match = function (t) { return !q || [t.solicitante, t.lugar, t.descripcion, t.direccion, t.comentario || ''].join(' ').toLowerCase().indexOf(q) >= 0; };
+  var dates = [];
+  S.tasks.forEach(function (t) { if (dates.indexOf(t.fecha) < 0) dates.push(t.fecha); });
+  dates = dates.filter(function (d) {
+    if (S.histFrom && d < S.histFrom) return false;
+    if (S.histTo && d > S.histTo) return false;
+    return S.tasks.some(function (t) { return t.fecha === d && match(t); });
+  }).sort().reverse();
+  var days = dates.map(function (d) {
+    var list = S.tasks.filter(function (t) { return t.fecha === d; });
+    var stt = stats(list, today, 64), open = S.histOpen === d;
+    var shown = list.filter(match).sort(function (x, y) { return (EST_RANK[x.estado] - EST_RANK[y.estado]) || (URG_RANK[x.urgencia] - URG_RANK[y.urgencia]); });
+    var head = '<button type="button" class="hday' + (open ? ' on' : '') + '" aria-expanded="' + open + '" data-act="histday" data-val="' + d + '">' +
+      ring(stt, 64, 14) +
+      '<span class="hday-main"><span class="day-t">' + fmtDate(d) + (d === today ? ' <span class="tag hoy">Hoy</span>' : '') + '</span>' +
+      '<span class="mini row"><span><b style="color:#166534">' + stt.done + '</b> realizadas</span><span><b style="color:#92400E">' + (stt.pend - stt.venc) + '</b> pendientes</span>' +
+      '<span><b style="color:#991B1B">' + stt.venc + '</b> caducadas</span><span><b style="color:#7F1D1D">' + stt.fail + '</b> no cumplidas</span><span><b>' + stt.total + '</b> en total</span></span></span>' +
+      '<span class="chev" aria-hidden="true">' + (open ? '▲' : '▼') + '</span></button>';
+    var body = '';
+    if (open) {
+      body = '<div class="hday-body"><div class="export"><span>Reporte del ' + fmtDate(d) + ': ' + plural(list.length, 'tarea', 'tareas') + '</span>' +
+        '<button type="button" class="ghost green" data-act="exp" data-val="pdf" data-id="' + d + '">Exportar PDF</button>' +
+        '<button type="button" class="primary green" data-act="exp" data-val="xlsx" data-id="' + d + '">Exportar Excel</button></div>' +
+        (S.expMsg && S.expDay === d ? '<div class="msg ' + (S.expErr ? 'err' : 'ok') + '" role="status">' + esc(S.expMsg) + '</div>' : '') +
+        (q ? '<div class="muted sm">Mostrando ' + shown.length + ' de ' + list.length + ' tareas que coinciden con la búsqueda</div>' : '') +
+        shown.map(function (t) { return card(t, today); }).join('') + '</div>';
+    }
+    return '<div class="card hday-wrap">' + head + body + '</div>';
+  }).join('');
+  return '<section class="stack"><div class="card stack-sm"><div class="row between"><h2>Historial por día</h2><span class="muted sm">' + plural(dates.length, 'día', 'días') + ' con registros</span></div>' +
+    '<p class="muted">Toca un día para ver todas sus tareas y exportar su reporte en PDF o Excel.</p>' +
+    '<div class="g3"><label>Buscar<input type="search" data-filter="histQ" value="' + esc(S.histQ) + '" placeholder="Solicitante, lugar o descripción"></label>' +
+    '<label>Desde<input type="date" data-filter="histFrom" value="' + esc(S.histFrom) + '"></label>' +
+    '<label>Hasta<input type="date" data-filter="histTo" value="' + esc(S.histTo) + '"></label></div>' +
+    '<div class="row"><button type="button" class="link" data-act="histclear">Limpiar filtros</button></div></div>' +
+    (days || empty('No hay días en el historial con estos filtros.')) + '</section>';
+}
+
+/* ---------- Alarma de tareas críticas / altas ---------- */
+var ALARM_KEY = 'monitoreo-actividades-alarma';
+var AL = { every: 2, last: 0 };
+try { var _al = JSON.parse(localStorage.getItem(ALARM_KEY) || '{}'); if (_al.every) AL.every = _al.every; } catch (e) {}
+var audioCtx = null;
+function unlockAudio() {
+  try {
+    if (!audioCtx) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) {}
+}
+function beep() {
+  if (!audioCtx) return;
+  try {
+    var t0 = audioCtx.currentTime;
+    for (var i = 0; i < 6; i++) {
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'square'; o.frequency.value = i % 2 ? 660 : 990;
+      g.gain.setValueAtTime(0.0001, t0 + i * 0.32);
+      g.gain.exponentialRampToValueAtTime(0.25, t0 + i * 0.32 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + i * 0.32 + 0.28);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0 + i * 0.32); o.stop(t0 + i * 0.32 + 0.3);
+    }
+  } catch (e) {}
+}
+function criticas() {
+  var today = todayStr();
+  return S.tasks.filter(function (t) {
+    if (t.estado !== 'Pendiente') return false;
+    if (t.urgencia === 'Crítica') return true;
+    return t.urgencia === 'Alta' && plazoDe(t) <= today;
+  });
+}
+function alarmTitle(c) {
+  var nc = c.filter(function (t) { return t.urgencia === 'Crítica'; }).length, na = c.length - nc;
+  return [nc ? plural(nc, 'crítica', 'críticas') : '', na ? plural(na, 'alta en su día límite', 'altas en su día límite') : ''].filter(Boolean).join(' y ');
+}
+function notifPerm() { return 'Notification' in window ? Notification.permission : 'unsupported'; }
+function alarm() {
+  var c = criticas(); if (!c.length) return;
+  AL.last = Date.now();
+  beep();
+  if (notifPerm() === 'granted') {
+    try {
+      var n = new Notification('⚠ Tareas sin cumplir: ' + alarmTitle(c), {
+        body: c.slice(0, 3).map(function (t) { return '• ' + t.descripcion + (t.lugar ? ' (' + t.lugar + ')' : ''); }).join('\n'),
+        tag: 'criticas', renotify: true, requireInteraction: true
+      });
+      n.onclick = function () { window.focus(); n.close(); };
+    } catch (e) {}
+  }
+  flashTitle();
+}
+var baseTitle = document.title, flashT = null;
+function flashTitle() {
+  clearInterval(flashT); var k = 0;
+  flashT = setInterval(function () {
+    document.title = k++ % 2 ? baseTitle : '⚠ TAREA URGENTE PENDIENTE';
+    if (k > 20 || !criticas().length) { clearInterval(flashT); document.title = baseTitle; }
+  }, 800);
+}
+function minsAgo(t) {
+  if (!t.creado) return '';
+  var m = Math.floor((Date.now() - t.creado) / 60000);
+  return m < 1 ? 'registrada hace menos de 1 min' : m < 60 ? 'registrada hace ' + m + ' min' : 'registrada hace ' + Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
+}
+function alertHtml() {
+  var c = criticas();
+  if (!c.length) return '';
+  var perm = notifPerm();
+  var opts = [1, 2, 5, 10].map(function (m) { return '<option value="' + m + '"' + (AL.every === m ? ' selected' : '') + '>cada ' + m + ' min</option>'; }).join('');
+  return '<section class="alert" role="alert" aria-label="Tareas urgentes sin cumplir">' +
+    '<div class="row between"><h2>⚠ Sin cumplir: ' + alarmTitle(c) + ' — deben cumplirse hoy</h2>' +
+    '<div class="row"><label class="inline">Alarma<select data-alarm="every">' + opts + '</select></label>' +
+    (perm === 'default' ? '<button type="button" class="ghost" data-act="notif">Activar notificaciones</button>' : '') +
+    '<button type="button" class="ghost" data-act="test">Probar sonido</button></div></div>' +
+    (perm === 'denied' ? '<p class="sm">Las notificaciones están bloqueadas en este navegador; la alarma sonará solo con la página abierta.</p>' : '') +
+    c.sort(function (x, y) { return (x.creado || 0) - (y.creado || 0); }).map(function (t) {
+      var td = todayStr(), lim = t.urgencia === 'Alta' ? (plazoDe(t) < td ? ' · plazo vencido el ' + fmtDate(plazoDe(t)) : ' · vence hoy') : '';
+      return '<div class="alert-item"><div class="alert-txt"><b><span style="' + PILL + URG_STYLE[t.urgencia] + ';margin-right:8px">' + t.urgencia + '</span>' + esc(t.descripcion) + lim + '</b>' +
+        '<span>' + esc(t.solicitante) + (t.direccion ? ' · ' + esc(t.direccion) : t.lugar ? ' · ' + esc(t.lugar) : '') + ' · ' + fmtDate(t.fecha) + ' · ' + minsAgo(t) + '</span></div>' +
+        '<button type="button" class="primary green" data-act="estado" data-id="' + esc(t.id) + '" data-val="Realizada">Marcar realizada</button></div>';
+    }).join('') + '</section>';
+}
+setInterval(function () {
+  if (criticas().length && Date.now() - AL.last >= AL.every * 60000) alarm();
+  var el = document.getElementById('alert'); if (el && criticas().length) el.innerHTML = alertHtml();
+}, 15000);
+
+function viewLogistica(today) {
+  var open = S.tasks.filter(function (t) { return t.estado === 'Pendiente'; }).sort(function (a, b) {
+    return ((isVencido(b, today) ? 1 : 0) - (isVencido(a, today) ? 1 : 0)) || (URG_RANK[a.urgencia] - URG_RANK[b.urgencia]) ||
+      (plazoDe(a) < plazoDe(b) ? -1 : plazoDe(a) > plazoDe(b) ? 1 : 0) || ((a.creado || 0) - (b.creado || 0));
+  });
+  var nCad = open.filter(function (t) { return isVencido(t, today); }).length;
+  var hechasHoy = S.tasks.filter(function (t) { return t.estado === 'Realizada' && t.cerrado && fmtDT(t.cerrado).slice(0, 10) === fmtDate(today); }).length;
+  return '<section class="stack"><div class="card stack-sm"><div class="row between"><h2>Mis encargos pendientes</h2><div class="row">' +
+    '<span class="pill-cad">' + plural(nCad, 'caducada', 'caducadas') + '</span><span class="pill-pend">' + plural(open.length - nCad, 'pendiente', 'pendientes') + '</span>' +
+    '<span class="pill-ok">' + plural(hechasHoy, 'realizada hoy', 'realizadas hoy') + '</span></div></div>' +
+    '<p class="muted">Primero aparecen las caducadas y las más urgentes. Al marcar <b>Realizada</b> puedes adjuntar fotos del trabajo; en <b>No cumplida</b>, escribe el motivo.</p></div>' +
+    (open.length ? open.map(function (t) { return card(t, today); }).join('') : empty('No tienes encargos pendientes. ¡Todo al día!')) + '</section>';
+}
+
+/* ---------- Render ---------- */
+function render() {
+  var today = todayStr();
+  var nOpen = S.tasks.filter(function (t) { return t.estado === 'Pendiente'; }).length;
+  var tabs = [['registro', 'Registro de encargos'], ['resumen', 'Resumen por día'], ['general', 'General'], ['caducadas', 'Caducadas / Pendientes (' + nOpen + ')'], ['historial', 'Historial']];
+  if (MODO === 'logistica') tabs = [
+    ['pendientes', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Pendientes (' + nOpen + ')'],
+    ['resumen', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg>Resumen del día']];
+  var view = MODO === 'logistica' && S.tab !== 'resumen' ? viewLogistica(today) : S.tab === 'resumen' ? viewResumen(today) : S.tab === 'general' ? viewGeneral(today) : S.tab === 'caducadas' ? viewCad(today) : S.tab === 'historial' ? viewHist(today) : viewRegistro();
+  var act = document.activeElement, key = act && (act.getAttribute('data-filter') || act.getAttribute('data-field')), pos = null;
+  try { pos = act && act.selectionStart; } catch (e) {}
+  document.getElementById('tabs').innerHTML = tabs.map(function (t) {
+    var on = S.tab === t[0];
+    return '<button type="button" role="tab" class="tab' + (on ? ' on' : '') + '" aria-selected="' + on + '" data-act="tab" data-val="' + t[0] + '">' + t[1] + '</button>';
+  }).join('');
+  document.getElementById('view').innerHTML = view;
+  document.getElementById('modal').innerHTML = modalHtml();
+  hydrateFotos();
+  document.getElementById('alert').innerHTML = alertHtml();
+  if (key) {
+    var el = document.querySelector('[data-filter="' + key + '"],[data-field="' + key + '"]');
+    if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) {} }
+  }
+}
+
+/* ---------- Acciones ---------- */
+function findTask(id) { for (var i = 0; i < S.tasks.length; i++) if (S.tasks[i].id === id) return S.tasks[i]; return null; }
+function save() {
+  var f = S.form, today = todayStr(), tomorrow = addDays(today, 1);
+  if (!f.solicitante.trim() || !f.descripcion.trim()) return set({ error: 'Completa al menos solicitante y descripción del encargo.' });
+  var clean = {}; Object.keys(f).forEach(function (k) { clean[k] = typeof f[k] === 'string' ? f[k].trim() : f[k]; });
+  var editing = S.editId;
+  if (!editing) clean.fecha = today;
+  if (clean.urgencia === 'Crítica') clean.plazo = today;
+  else if (clean.urgencia === 'Alta') {
+    if (!clean.plazo) clean.plazo = today;
+    if (clean.plazo !== today && clean.plazo !== tomorrow) return set({ error: 'Urgencia Alta: el plazo debe ser hoy o mañana.' });
+  } else if (clean.plazo && clean.plazo < today) return set({ error: 'El plazo no puede ser una fecha pasada.' });
+  var nuevaCritica = clean.urgencia === 'Crítica' && !editing;
+  persist(editing
+    ? S.tasks.map(function (x) { return x.id === editing ? Object.assign({}, x, clean) : x; })
+    : S.tasks.concat([Object.assign({ id: 't' + Date.now() + Math.random().toString(36).slice(2, 6), estado: 'Pendiente', creado: Date.now() }, clean)]));
+  set({ editId: null, error: '', form: emptyForm(todayStr()), ok: editing ? 'Cambios guardados.' : nuevaCritica ? 'Tarea CRÍTICA registrada: la alarma sonará hasta que se marque como realizada.' : 'Encargo agregado. Puedes revisarlo en Caducadas / Pendientes o en Resumen por día.' });
+  if (!editing) avisoNueva(S.tasks[S.tasks.length - 1], false);
+  if (nuevaCritica) setTimeout(alarm, 1400);
+}
+function doExport(kind, day) {
+  var today = todayStr(), resDate = day || today;
+  S.expDay = resDate;
+  var rows = S.tasks.filter(function (t) { return t.fecha === resDate; })
+    .sort(function (a, b) { return (EST_RANK[a.estado] - EST_RANK[b.estado]) || (URG_RANK[a.urgencia] - URG_RANK[b.urgencia]) || (a.creado - b.creado); });
+  if (!rows.length) return set({ expMsg: 'No hay tareas registradas el ' + fmtDate(resDate) + ' para el reporte.', expErr: true });
+  var st = stats(rows, today, 10), enPlazo = st.pend - st.venc;
+  var pct = Math.round((st.done / st.total) * 100) + '%';
+  var summary = {
+    main: (resDate === today ? 'Realizado hoy: ' : 'Realizado: ') + pct + ' de 100% (' + st.done + ' de ' + st.total + ' tareas)',
+    ratio: st.done / st.total,
+    nums: { done: st.done, pend: enPlazo, venc: st.venc, fail: st.fail, total: st.total },
+    compare: st.done === st.total ? 'Meta alcanzada: 100% de 100%' : pct + ' de 100% · faltan ' + (100 - Math.round((st.done / st.total) * 100)) + ' puntos (' + (st.total - st.done) + ' tareas)',
+    detail: 'Realizadas: ' + st.done + '   ·   Pendientes: ' + enPlazo + '   ·   Caducadas: ' + st.venc + '   ·   No cumplidas: ' + st.fail + '   ·   Total: ' + st.total,
+    cells: [['% Realizado', pct], ['% Máximo (meta)', '100%'], ['Diferencia con el máximo', (100 - Math.round((st.done / st.total) * 100)) + ' puntos'], ['Realizadas', String(st.done)], ['Pendientes', String(enPlazo)], ['Caducadas', String(st.venc)], ['No cumplidas', String(st.fail)], ['Total de tareas', String(st.total)]]
+  };
+  var now = new Date();
+  var title = 'Reporte diario de encargos – ' + fmtDate(resDate);
+  var sub = 'Monitoreo de Actividades · Generado: ' + fmtDate(today) + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+  var name = 'reporte-encargos-' + resDate + '.' + kind;
+  var ids = []; rows.forEach(function (t) { (t.fotos || []).forEach(function (x) { ids.push(x); }); });
+  set({ expMsg: 'Preparando el reporte…', expErr: false });
+  Promise.all(ids.map(function (x) { return getFoto(x).catch(function () { return null; }); })).then(function (list) {
+  var fotos = {}; list.forEach(function (f) { if (f) fotos[f.id] = f; });
+  try {
+    var bytes = kind === 'pdf' ? buildPdf(rows, title, sub, summary, fotos) : buildXlsx(rows, title, sub, summary);
+    saveFile(name, bytes, kind === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .then(function () { set({ expMsg: 'Archivo listo: ' + name, expErr: false }); }, function () { set({ expMsg: 'No se pudo descargar el archivo.', expErr: true }); });
+  } catch (e) { set({ expMsg: 'No se pudo generar el archivo.', expErr: true }); }
+  });
+}
+document.addEventListener('click', function (ev) {
+  unlockAudio();
+  var b = ev.target.closest('[data-act]'); if (!b) return;
+  var a = b.getAttribute('data-act'), v = b.getAttribute('data-val'), id = b.getAttribute('data-id');
+  if (a === 'tab') set({ tab: v });
+  else if (a === 'save') save();
+  else if (a === 'cancel') set({ editId: null, error: '', form: emptyForm(todayStr()) });
+  else if (a === 'estado' && (v === 'No cumplida' || v === 'Realizada')) openCierre(id, v);
+  else if (a === 'nccomment') { var tc = findTask(id); if (tc) openCierre(id, tc.estado); }
+  else if (a === 'clsave') saveCierre();
+  else if (a === 'clcancel') set({ cl: null });
+  else if (a === 'clrmkeep') { S.cl.keep.splice(+v, 1); render(); }
+  else if (a === 'clrmnew') { S.cl.nuevas.splice(+v, 1); render(); }
+  else if (a === 'verfoto') { set({ verFoto: v }); getFoto(v).then(function () { render(); }); }
+  else if (a === 'cerrarfoto') set({ verFoto: null });
+  else if (a === 'estado') { persist(S.tasks.map(function (x) { return x.id === id ? Object.assign({}, x, { estado: v, cerrado: null }) : x; })); render(); }
+  else if (a === 'edit') {
+    var t = findTask(id); if (!t) return;
+    set({ tab: 'registro', editId: id, error: '', ok: '', form: { fecha: t.fecha, plazo: t.plazo || '', solicitante: t.solicitante, tipo: t.tipo, lugar: t.lugar, descripcion: t.descripcion, direccion: t.direccion, entrega: t.entrega, urgencia: t.urgencia } });
+    window.scrollTo(0, 0);
+  }
+  else if (a === 'del') {
+    if (!window.confirm('¿Eliminar este encargo?')) return;
+    var td = findTask(id); if (td && td.fotos) td.fotos.forEach(delFoto);
+    persist(S.tasks.filter(function (x) { return x.id !== id; }));
+    if (S.editId === id) S.editId = null;
+    render();
+  }
+  else if (a === 'resday') set({ resDate: v, expMsg: '' });
+  else if (a === 'exp') doExport(v, id);
+  else if (a === 'histday') set({ histOpen: S.histOpen === v ? null : v, expMsg: '' });
+  else if (a === 'urg') {
+    var td = todayStr(), tm = addDays(td, 1), p = S.form.plazo;
+    if (v === 'Crítica') p = td;
+    else if (v === 'Alta') p = (p === td || p === tm) ? p : td;
+    else if (p && p < td) p = '';
+    S.form.urgencia = v; S.form.plazo = p; S.error = ''; S.ok = ''; render();
+  }
+  else if (a === 'plazo') { S.form.plazo = v; render(); }
+  else if (a === 'notif') { try { Notification.requestPermission().then(render); } catch (e) {} }
+  else if (a === 'test') beep();
+  else if (a === 'cpview') set({ cpView: v });
+  else if (a === 'cptype') set({ cpType: v });
+  else if (a === 'cpall') set({ cpDate: '' });
+  else if (a === 'histf') set({ histFilter: v });
+  else if (a === 'histclear') set({ histFilter: 'Todas', histQ: '', histFrom: '', histTo: '' });
+});
+document.addEventListener('input', function (ev) {
+  var t = ev.target, k = t.getAttribute && t.getAttribute('data-field');
+  if (k) { S.form[k] = t.value; if (S.ok || S.error) { S.ok = ''; S.error = ''; } if (k === 'urgencia' || (k === 'fecha' && S.form.urgencia === 'Crítica')) render(); return; }
+  if (t.getAttribute && t.getAttribute('data-alarm')) { AL.every = +t.value; try { localStorage.setItem(ALARM_KEY, JSON.stringify({ every: AL.every })); } catch (e) {} return; }
+  if (t.getAttribute && t.getAttribute('data-modal')) { if (S.cl) S.cl.text = t.value; return; }
+  k = t.getAttribute && t.getAttribute('data-filter');
+  if (k) { S[k] = t.value; render(); }
+});
+window.addEventListener('storage', function (e) { if (e.key === STORE_KEY && !cloud.ready) { S.tasks = loadTasks(); render(); } });
+render();
+if (criticas().length) setTimeout(alarm, 1500);
+startCloud();
+
+if ('serviceWorker' in navigator && /github\.io|web\.app|firebaseapp\.com|netlify\.app/.test(location.hostname)) {
+  navigator.serviceWorker.register('sw-logistica.js').then(function (reg) {
+    reg.addEventListener('updatefound', function () { var nw = reg.installing; nw && nw.addEventListener('statechange', function () { if (nw.state === 'activated' && navigator.serviceWorker.controller) location.reload(); }); });
+  }).catch(function () {});
+}
+
+</script>
+</body>
+</html>
