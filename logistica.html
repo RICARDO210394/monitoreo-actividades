@@ -1058,9 +1058,9 @@ function viewRegistro() {
   }).join('');
   var plazo;
   if (f.urgencia === 'Crítica') {
-    plazo = '<div class="msg crit">CRÍTICA · Entrega inmediata, hoy ' + fmtDate(today) + '. No se puede pasar a otro día y sonará una alarma hasta que se marque como realizada.</div>';
+    plazo = '<div class="msg crit">CRÍTICA · Entrega inmediata, hoy ' + fmtDate(today) + '. No se puede pasar a otro día; en el teléfono de logística sonará una alarma hasta que se marque como realizada.</div>';
   } else if (f.urgencia === 'Alta') {
-    plazo = '<div class="field"><span class="lbl">Plazo máximo (urgencia Alta: hoy o mañana)</span><span class="muted sm">Si llega el día límite y sigue pendiente, sonará la alarma hasta que se marque como realizada.</span><div class="row">' +
+    plazo = '<div class="field"><span class="lbl">Plazo máximo (urgencia Alta: hoy o mañana)</span><span class="muted sm">Si llega el día límite y sigue pendiente, en logística sonará la alarma hasta que se marque como realizada.</span><div class="row">' +
       chip('Hoy · ' + fmtDate(today), 'plazo', today, (f.plazo || today) === today, 'seg') +
       chip('Mañana · ' + fmtDate(tomorrow), 'plazo', tomorrow, f.plazo === tomorrow, 'seg') + '</div></div>';
   } else {
@@ -1253,6 +1253,7 @@ function beep() {
   } catch (e) {}
 }
 function criticas() {
+  if (MODO !== 'logistica') return []; /* la alarma solo suena en el equipo de logística */
   var today = todayStr();
   return S.tasks.filter(function (t) {
     if (t.estado !== 'Pendiente') return false;
@@ -1381,7 +1382,7 @@ function save() {
   persist(editing
     ? S.tasks.map(function (x) { return x.id === editing ? Object.assign({}, x, clean) : x; })
     : S.tasks.concat([Object.assign({ id: 't' + Date.now() + Math.random().toString(36).slice(2, 6), estado: 'Pendiente', creado: Date.now() }, clean)]));
-  set({ editId: null, error: '', form: emptyForm(todayStr()), ok: editing ? 'Cambios guardados.' : nuevaCritica ? 'Tarea CRÍTICA registrada: la alarma sonará hasta que se marque como realizada.' : 'Encargo agregado. Puedes revisarlo en Caducadas / Pendientes o en Resumen por día.' });
+  set({ editId: null, error: '', form: emptyForm(todayStr()), ok: editing ? 'Cambios guardados.' : nuevaCritica ? 'Tarea CRÍTICA registrada: en logística sonará la alarma hasta que se marque como realizada.' : 'Encargo agregado. Puedes revisarlo en Caducadas / Pendientes o en Resumen por día.' });
   if (!editing) avisoNueva(S.tasks[S.tasks.length - 1], false);
   if (nuevaCritica) setTimeout(alarm, 1400);
 }
