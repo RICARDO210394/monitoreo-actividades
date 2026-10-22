@@ -139,6 +139,10 @@ button.day.on{border-color:#1D4ED8;box-shadow:0 0 0 3px #DBEAFE}
 .toast span{font-size:13px;color:#D1D5DB}
 .toast.green{background:#14532D}.toast.blue{background:#1E3A8A}.toast.red{background:#7F1D1D}
 .pill-ok{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#DCFCE7;color:#166534}
+.soundbar{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 16px;border:2px solid #F59E0B;border-radius:12px;background:#FFFBEB;color:#78350F;font-size:15px}
+.soundbar span{font-size:13px;color:#92400E}
+.desc-box .sub{margin-top:8px}
+.fotos2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .group-h{padding-bottom:6px;border-bottom:2px solid #D1D5DB}
 .alert{background:#7F1D1D;color:#FFFFFF;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;animation:pulse 1.6s ease-in-out infinite}
 .alert h2{font-size:17px}
@@ -204,6 +208,7 @@ body.m input,body.m textarea,body.m select{font-size:16px}
 <h1>Mis encargos</h1>
 <div id="sync" class="sync gray" role="status"></div>
 </header>
+<div id="sound"></div>
 <div id="alert"></div>
 <nav id="tabs" role="tablist" aria-label="Secciones"></nav>
 <main id="view"></main>
@@ -320,7 +325,7 @@ function fmtDate(s) {
   return p[2] + '/' + p[1] + '/' + p[0];
 }
 function emptyForm(fecha) {
-  return { fecha: fecha, plazo: '', solicitante: '', tipo: 'Realizar', lugar: '', descripcion: '', direccion: '', entrega: '', urgencia: 'Media' };
+  return { fecha: fecha, plazo: '', solicitante: '', tipo: 'Realizar', lugar: '', descripcion: '', direccion: '', entrega: '', urgencia: 'Media', fotosRef: [] };
 }
 function addDays(s, n) {
   var d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n);
@@ -838,6 +843,7 @@ function tones(notes, type, gain) {
   } catch (e) {}
 }
 function chimeNew() { tones([[784, 0, 0.35], [1047, 0.18, 0.5]], 'sine', 0.35); }
+function chimeFail() { tones([[523, 0, 0.3], [392, 0.2, 0.55]], 'triangle', 0.35); }
 function chimeDone() { tones([[523, 0, 0.3], [659, 0.14, 0.3], [784, 0.28, 0.55]], 'triangle', 0.35); }
 var toastT = null;
 function toast(title, body, kind) {
@@ -852,7 +858,7 @@ function sysNotify(title, body) {
 }
 function avisoNueva(t, remoto) {
   chimeNew();
-  toast(remoto ? 'Nueva consigna asignada' : 'Consigna registrada', t.urgencia + ' · ' + t.descripcion + ' · ' + fmtTime(t.creado), 'blue');
+  toast(remoto ? 'Nueva consigna asignada' : 'Consigna registrada', t.urgencia + ' · ' + t.descripcion + ' · ' + fmtTime(t.creado) + (t.fotosRef && t.fotosRef.length ? ' · con ' + plural(t.fotosRef.length, 'foto', 'fotos') : ''), 'blue');
   sysNotify('Nueva consigna (' + t.urgencia + ')', t.descripcion + (t.solicitante ? ' · ' + t.solicitante : ''));
 }
 function avisoCierre(t) {
@@ -861,6 +867,7 @@ function avisoCierre(t) {
     toast('Actividad cumplida', t.descripcion + ' · ' + fmtTime(t.cerrado) + (t.fotos && t.fotos.length ? ' · ' + plural(t.fotos.length, 'foto', 'fotos') : ''), 'green');
     sysNotify('Actividad cumplida', t.descripcion + ' · ' + fmtTime(t.cerrado));
   } else {
+    chimeFail();
     toast('Actividad no cumplida', t.descripcion + (t.comentario ? ' · ' + t.comentario : ''), 'red');
     sysNotify('Actividad no cumplida', t.descripcion);
   }
@@ -945,12 +952,24 @@ document.addEventListener('keydown', function (e) {
   if (e.key !== 'Escape') return;
   if (S.verFoto) set({ verFoto: null }); else if (S.cl) set({ cl: null });
 });
+document.addEventListener('change', function (e) {
+  var inp = e.target;
+  if (!inp.getAttribute || !inp.getAttribute('data-reffotos')) return;
+  var libre = 4 - (S.form.fotosRef || []).length - S.formNuevas.length;
+  var files = Array.prototype.slice.call(inp.files || [], 0, Math.max(0, libre));
+  if (!files.length) return;
+  S.refBusy = true; render();
+  Promise.all(files.map(function (f) { return compressImage(f).catch(function () { return null; }); })).then(function (list) {
+    S.formNuevas = S.formNuevas.concat(list.filter(Boolean)); S.refBusy = false; render();
+  });
+});
 
 /* ---------- Aplicación ---------- */
 function loadTasks() {
   try { var l = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
 }
 var S = {
+  formNuevas: [], refBusy: false,
   tab: MODO === 'logistica' ? 'pendientes' : 'registro', tasks: loadTasks(), form: emptyForm(todayStr()), editId: null, error: '', ok: '',
   resDate: '', expMsg: '', expErr: false,
   cpView: 'dia', cpType: 'Todas', cpDate: '',
@@ -1010,7 +1029,8 @@ function card(t, today) {
     '<div><span>Lugar de la solicitud: </span>' + esc(t.lugar || '—') + '</div>' +
     '<div><span>Dirección o punto de entrega: </span>' + esc(t.direccion || '—') + '</div>' +
     '<div><span>Plazo máximo: </span>' + fmtDate(pl) + ' <em class="' + infoCls + '">' + info + '</em></div></div>' +
-    '<div class="desc-box"><span>Descripción del encargo</span>' + esc(t.descripcion) + '</div>' +
+    '<div class="desc-box"><span>Descripción del encargo</span>' + esc(t.descripcion) +
+    (t.fotosRef && t.fotosRef.length ? '<span class="sub">Fotos de referencia</span>' + thumbs(t.fotosRef) : '') + '</div>' +
     '<div class="times"><span>🕒 Asignada: <b>' + (t.creado ? fmtDT(t.creado) : '—') + '</b></span>' +
     (t.cerrado && t.estado !== 'Pendiente' ? '<span>' + (t.estado === 'Realizada' ? '✔ Finalizada' : '✖ Cerrada como no cumplida') + ': <b>' + fmtDT(t.cerrado) + '</b></span>' +
       (durTxt(t.creado, t.cerrado) ? '<span>Tiempo: <b>' + durTxt(t.creado, t.cerrado) + '</b></span>' : '') : '') + '</div>' +
@@ -1056,6 +1076,15 @@ function viewRegistro() {
     '<label>Lugar de la solicitud<input type="text" data-field="lugar" value="' + esc(f.lugar) + '" placeholder="Dónde se realiza la solicitud. Ej. Piazza Villa Club"></label>' +
     '<label>Dirección o punto de entrega<input type="text" data-field="direccion" value="' + esc(f.direccion) + '" placeholder="Dirección o punto donde se entrega el encargo"></label>' +
     '<label>Descripción del encargo<textarea data-field="descripcion" rows="3" placeholder="Qué se debe hacer">' + esc(f.descripcion) + '</textarea></label>' +
+    '<div class="field"><span class="lbl">Fotos de referencia de lo que se debe hacer (opcional · ' + ((f.fotosRef || []).length + S.formNuevas.length) + ' de 4)</span>' +
+    (((f.fotosRef || []).length + S.formNuevas.length) ? '<div class="pvs">' + (f.fotosRef || []).map(function (id, i) {
+      return '<div class="pv"><img data-foto="' + esc(id) + '" alt="Foto de referencia"><button type="button" class="pv-x" data-act="refrmkeep" data-val="' + i + '" aria-label="Quitar foto">×</button></div>';
+    }).join('') + S.formNuevas.map(function (x, i) {
+      return '<div class="pv"><img src="' + x.data + '" alt="Foto de referencia nueva"><button type="button" class="pv-x" data-act="refrmnew" data-val="' + i + '" aria-label="Quitar foto">×</button></div>';
+    }).join('') + '</div>' : '') +
+    (S.refBusy ? '<div class="msg ok">Procesando fotos…</div>' : '') +
+    (((f.fotosRef || []).length + S.formNuevas.length) < 4 ? '<div class="fotos2"><label class="fotobtn">📷 Tomar foto<input type="file" accept="image/*" capture="environment" data-reffotos="1"></label>' +
+      '<label class="fotobtn">🖼 Galería<input type="file" accept="image/*" multiple data-reffotos="1"></label></div>' : '') + '</div>' +
     (S.ok && !S.error ? '<div class="msg ok" role="status">' + esc(S.ok) + '</div>' : '') +
     (S.error ? '<div class="msg err" role="alert">' + esc(S.error) + '</div>' : '') +
     '<div class="row"><button type="button" class="primary grow" data-act="save">' + (S.editId ? 'Guardar cambios' : 'Agregar encargo') + '</button>' +
@@ -1320,6 +1349,9 @@ function render() {
   document.getElementById('modal').innerHTML = modalHtml();
   hydrateFotos();
   document.getElementById('alert').innerHTML = alertHtml();
+  var sonidoOk = audioCtx && audioCtx.state === 'running';
+  document.getElementById('sound').innerHTML = (sonidoOk || S.sonidoPedido) && (notifPerm() !== 'default' || S.sonidoPedido) ? '' :
+    '<button type="button" class="soundbar" data-act="activarsonido">🔔 <b>Activar sonido y notificaciones</b><span>Tócalo una vez al abrir la app para escuchar las alarmas y los avisos de los demás equipos.</span></button>';
   if (key) {
     var el = document.querySelector('[data-filter="' + key + '"],[data-field="' + key + '"]');
     if (el) { el.focus(); try { if (pos != null) el.setSelectionRange(pos, pos); } catch (e) {} }
@@ -1340,6 +1372,12 @@ function save() {
     if (clean.plazo !== today && clean.plazo !== tomorrow) return set({ error: 'Urgencia Alta: el plazo debe ser hoy o mañana.' });
   } else if (clean.plazo && clean.plazo < today) return set({ error: 'El plazo no puede ser una fecha pasada.' });
   var nuevaCritica = clean.urgencia === 'Crítica' && !editing;
+  if (S.refBusy) return set({ error: 'Espera a que terminen de procesarse las fotos.' });
+  var orig = editing ? findTask(editing) : null;
+  if (orig && orig.fotosRef) orig.fotosRef.forEach(function (x) { if ((f.fotosRef || []).indexOf(x) < 0) delFoto(x); });
+  S.formNuevas.forEach(putFoto);
+  clean.fotosRef = (f.fotosRef || []).concat(S.formNuevas.map(function (x) { return x.id; }));
+  S.formNuevas = [];
   persist(editing
     ? S.tasks.map(function (x) { return x.id === editing ? Object.assign({}, x, clean) : x; })
     : S.tasks.concat([Object.assign({ id: 't' + Date.now() + Math.random().toString(36).slice(2, 6), estado: 'Pendiente', creado: Date.now() }, clean)]));
@@ -1384,7 +1422,10 @@ document.addEventListener('click', function (ev) {
   var a = b.getAttribute('data-act'), v = b.getAttribute('data-val'), id = b.getAttribute('data-id');
   if (a === 'tab') set({ tab: v });
   else if (a === 'save') save();
-  else if (a === 'cancel') set({ editId: null, error: '', form: emptyForm(todayStr()) });
+  else if (a === 'cancel') set({ editId: null, error: '', form: emptyForm(todayStr()), formNuevas: [] });
+  else if (a === 'refrmkeep') { S.form.fotosRef.splice(+v, 1); render(); }
+  else if (a === 'refrmnew') { S.formNuevas.splice(+v, 1); render(); }
+  else if (a === 'activarsonido') { S.sonidoPedido = true; unlockAudio(); try { if (notifPerm() === 'default') Notification.requestPermission().then(function () { render(); }); } catch (e) {} setTimeout(function () { chimeNew(); render(); }, 150); }
   else if (a === 'estado' && (v === 'No cumplida' || v === 'Realizada')) openCierre(id, v);
   else if (a === 'nccomment') { var tc = findTask(id); if (tc) openCierre(id, tc.estado); }
   else if (a === 'clsave') saveCierre();
@@ -1396,12 +1437,12 @@ document.addEventListener('click', function (ev) {
   else if (a === 'estado') { persist(S.tasks.map(function (x) { return x.id === id ? Object.assign({}, x, { estado: v, cerrado: null }) : x; })); render(); }
   else if (a === 'edit') {
     var t = findTask(id); if (!t) return;
-    set({ tab: 'registro', editId: id, error: '', ok: '', form: { fecha: t.fecha, plazo: t.plazo || '', solicitante: t.solicitante, tipo: t.tipo, lugar: t.lugar, descripcion: t.descripcion, direccion: t.direccion, entrega: t.entrega, urgencia: t.urgencia } });
+    set({ tab: 'registro', editId: id, error: '', ok: '', form: { fecha: t.fecha, plazo: t.plazo || '', solicitante: t.solicitante, tipo: t.tipo, lugar: t.lugar, descripcion: t.descripcion, direccion: t.direccion, entrega: t.entrega, urgencia: t.urgencia, fotosRef: (t.fotosRef || []).slice() }, formNuevas: [] });
     window.scrollTo(0, 0);
   }
   else if (a === 'del') {
     if (!window.confirm('¿Eliminar este encargo?')) return;
-    var td = findTask(id); if (td && td.fotos) td.fotos.forEach(delFoto);
+    var td = findTask(id); if (td) (td.fotos || []).concat(td.fotosRef || []).forEach(delFoto);
     persist(S.tasks.filter(function (x) { return x.id !== id; }));
     if (S.editId === id) S.editId = null;
     render();
