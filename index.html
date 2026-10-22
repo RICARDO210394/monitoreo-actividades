@@ -923,6 +923,53 @@ document.addEventListener('change', function (e) {
   });
 });
 
+/* ---------- Recordatorios a los 30 min y 1 h (solo teléfono de logística) ---------- */
+var REC_KEY = 'monitoreo-actividades-recordatorios', REC_MIN = [30, 60];
+function recLeer() { try { return JSON.parse(localStorage.getItem(REC_KEY) || '{}'); } catch (e) { return {}; } }
+function recGuardar(r) { try { localStorage.setItem(REC_KEY, JSON.stringify(r)); } catch (e) {} }
+function proxRecordatorio(t) {
+  if (!t.creado) return '';
+  var hechos = recLeer()[t.id] || [];
+  for (var i = 0; i < REC_MIN.length; i++) {
+    if (hechos.indexOf(REC_MIN[i]) < 0) { var at = t.creado + REC_MIN[i] * 60000; if (at > Date.now()) return fmtTime(at) + ' (' + (REC_MIN[i] === 60 ? '1 h' : REC_MIN[i] + ' min') + ')'; }
+  }
+  return '';
+}
+function chimeRec() { tones([[880, 0, 0.18], [880, 0.25, 0.18], [1175, 0.5, 0.45]], 'sine', 0.4); }
+function revisarRecordatorios() {
+  if (MODO !== 'logistica') return;
+  var r = recLeer(), now = Date.now(), cambio = false, avisar = [];
+  var alarmIds = criticas().map(function (t) { return t.id; });
+  S.tasks.forEach(function (t) {
+    if (t.estado !== 'Pendiente' || !t.creado) return;
+    var hechos = r[t.id] || [];
+    REC_MIN.forEach(function (m) {
+      if (hechos.indexOf(m) >= 0) return;
+      var at = t.creado + m * 60000;
+      if (now >= at) {
+        hechos.push(m); cambio = true;
+        /* solo se avisa si el momento es reciente (no al abrir la app horas después) y si no tiene ya la alarma de Crítica/Alta */
+        if (now - at < 20 * 60000 && alarmIds.indexOf(t.id) < 0) avisar.push([t, m]);
+      }
+    });
+    r[t.id] = hechos;
+  });
+  Object.keys(r).forEach(function (id) { if (!S.tasks.some(function (t) { return t.id === id && t.estado === 'Pendiente'; })) { delete r[id]; cambio = true; } });
+  if (cambio) recGuardar(r);
+  if (avisar.length) {
+    var lleva = function (m) { return m === 60 ? '1 hora' : m + ' minutos'; };
+    var uno = avisar.length === 1, t = avisar[0][0], m = avisar[0][1];
+    var titulo = uno ? 'Lleva ' + lleva(m) + ' pendiente' : 'Tienes ' + plural(avisar.length, 'encargo pendiente', 'encargos pendientes');
+    var cuerpo = avisar.map(function (p) { return p[0].descripcion + ' (' + lleva(p[1]) + ')'; }).join(' · ');
+    chimeRec();
+    toast('⏰ Recordatorio · ' + titulo, cuerpo, 'blue');
+    try { if (notifPerm() === 'granted') { var n = new Notification('⏰ Recordatorio: ' + titulo, { body: cuerpo, tag: 'rec-' + t.id + '-' + m, renotify: true }); n.onclick = function () { window.focus(); n.close(); }; } } catch (e) {}
+    render();
+  }
+}
+setInterval(revisarRecordatorios, 30000);
+setTimeout(revisarRecordatorios, 3000);
+
 /* ---------- Aplicación ---------- */
 function loadTasks() {
   try { var l = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; }
@@ -991,6 +1038,7 @@ function card(t, today) {
     '<div class="desc-box"><span>Descripción del encargo</span>' + esc(t.descripcion) +
     (t.fotosRef && t.fotosRef.length ? '<span class="sub">Fotos de referencia</span>' + thumbs(t.fotosRef) : '') + '</div>' +
     '<div class="times"><span>🕒 Asignada: <b>' + (t.creado ? fmtDT(t.creado) : '—') + '</b></span>' +
+    (MODO === 'logistica' && t.estado === 'Pendiente' && proxRecordatorio(t) ? '<span>⏰ Recordatorio: <b>' + proxRecordatorio(t) + '</b></span>' : '') +
     (t.cerrado && t.estado !== 'Pendiente' ? '<span>' + (t.estado === 'Realizada' ? '✔ Finalizada' : '✖ Cerrada como no cumplida') + ': <b>' + fmtDT(t.cerrado) + '</b></span>' +
       (durTxt(t.creado, t.cerrado) ? '<span>Tiempo: <b>' + durTxt(t.creado, t.cerrado) + '</b></span>' : '') : '') + '</div>' +
     (t.estado === 'No cumplida'
