@@ -87,6 +87,9 @@ h3{font-family:var(--font-display);font-size:16px;margin:0;font-weight:700}
 .shiftopt>span{display:grid;gap:2px}.shiftopt input{width:auto;accent-color:var(--accent)}
 .shiftopt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
 .obs{margin-top:4px;font-size:13px;padding:4px 8px;border-left:3px solid var(--warn);background:var(--warn-soft);border-radius:4px}
+.qrev{display:grid;gap:6px;padding:12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--line)}
+.qrev.ok{border-left-color:var(--good)}.qrev.bad{border-left-color:var(--bad)}
+.docref{padding:8px 10px;border-radius:8px;background:var(--c2s);border:1px solid color-mix(in srgb,var(--c2) 30%,var(--line))}
 .ptabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow)}
 .ptab{border:0;background:none;font:600 14px var(--font-body);color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer}
 .ptab:hover{background:var(--surface-2);color:var(--ink)}.ptab[aria-current="true"]{background:var(--c);color:#fff}
@@ -244,7 +247,9 @@ function band(n){ if(n==null||isNaN(n))return ['p-none','Sin nota']; if(n>=9)ret
 const pill=n=>{const [c,t]=band(n);return `<span class="pill ${c}">${t}</span>`};
 const bandColor=n=>{const c=band(n)[0];return c==='p-good'?'var(--good)':c==='p-ok'?'var(--accent)':c==='p-warn'?'var(--warn)':'var(--bad)'};
 
-function opStats(id){ const list=evals.filter(e=>e.operator===id&&e.status==='calificada').sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||0)-(b.createdAt||0));
+const resVisible=e=>e.source!=='operador'||!!e.resultsPublished;
+const seesGrade=e=>e.status==='calificada'&&(!me||resVisible(e));
+function opStats(id){ const list=evals.filter(e=>e.operator===id&&seesGrade(e)).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||0)-(b.createdAt||0));
   const notas=list.map(e=>e.nota); const avg=notas.length?notas.reduce((a,b)=>a+b,0)/notas.length:null;
   return {list,avg,count:list.length,last:list.length?list[list.length-1].nota:null,best:notas.length?Math.max(...notas):null,worst:notas.length?Math.min(...notas):null,
     pend:evals.filter(e=>e.operator===id&&e.status==='pendiente').length} }
@@ -256,7 +261,7 @@ async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncod
 
 /* ---------- navegación ---------- */
 function renderTabs(){
-  const pend=evals.filter(e=>e.status==='pendiente').length;
+  const pend=evals.filter(e=>e.status==='pendiente'||(e.source==='operador'&&e.status==='calificada'&&!e.resultsPublished)).length;
   const lb=document.getElementById('lockBtn');
   if(!admin&&!me){document.getElementById('tabs').innerHTML='';lb.hidden=true;return}
   lb.hidden=false;lb.textContent=admin?'Cerrar sesión (supervisor)':'Cerrar sesión ('+opName(me).split(' ')[0]+')';
@@ -296,8 +301,8 @@ function evalTable(list,showOp){
   if(!list.length)return `<div class="empty">Sin evaluaciones registradas.</div>`;
   return `<div class="tablewrap"><table><thead><tr><th>Fecha</th>${showOp?'<th>Operador</th>':''}<th>Formulario</th><th>Puntos</th><th>Nota</th><th>Estado</th></tr></thead><tbody>
   ${list.map(e=>`<tr class="click" data-eval="${e.id}"><td class="num">${fmtDate(e.date)}</td>${showOp?`<td><span class="row" style="gap:8px;flex-wrap:nowrap"><span class="dot" style="${opVars(e.operator)}"></span>${esc(opName(e.operator))}</span></td>`:''}<td>${esc(e.formTitle)}</td>
-  <td class="num">${e.status==='calificada'?fmt(e.total)+' / '+fmt(e.max):'—'}</td><td class="num"><b>${e.status==='calificada'?fmt(e.nota):'—'}</b></td>
-  <td>${e.status==='calificada'?pill(e.nota):'<span class="pill p-warn">Por calificar</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+  <td class="num">${seesGrade(e)?fmt(e.total)+' / '+fmt(e.max):'—'}</td><td class="num"><b>${seesGrade(e)?fmt(e.nota):'—'}</b></td>
+  <td>${me&&!resVisible(e)?'<span class="pill p-none">Enviado · resultado pendiente</span>':e.status==='calificada'?pill(e.nota)+(!me&&!resVisible(e)?' <span class="pill p-warn">Sin publicar</span>':''):'<span class="pill p-warn">Por calificar</span>'}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function vOperadores(){
   return `<div><div class="eyebrow">Perfiles</div><h2>Operadores</h2></div>
@@ -359,7 +364,7 @@ function feed(op){
     if(r.type==='permiso')items.push({t:r.createdAt,d:r.date,ic:'PE',c:'var(--warn)',txt:`Permiso: salió ${r.out}, turno terminaba ${r.planned} (${fmtDur(spanMin(r.out,r.planned))}) · ${r.status}`});
     if(r.type==='ajuste')items.push({t:r.createdAt,d:r.date,ic:'AJ',c:'var(--c4)',txt:`Ajuste de horas ${fmtH(r.minutes)}`})});
   memos.filter(m=>m.operator===op).forEach(m=>items.push({t:m.createdAt,d:m.date,ic:'ME',c:(MEMO_T[m.type]||MEMO_T.memo)[1],txt:`${(MEMO_T[m.type]||MEMO_T.memo)[0]}: ${esc(m.subject)}`}));
-  evals.filter(e=>e.operator===op).forEach(e=>items.push({t:e.createdAt,d:e.date,ic:'EV',c:'var(--c1)',txt:`Evaluación "${esc(e.formTitle)}" · ${e.status==='calificada'?'nota '+fmt(e.nota):'por calificar'}`}));
+  evals.filter(e=>e.operator===op).forEach(e=>items.push({t:e.createdAt,d:e.date,ic:'EV',c:'var(--c1)',txt:`Evaluación "${esc(e.formTitle)}" · ${me&&!resVisible(e)?'enviada, resultado pendiente':e.status==='calificada'?'nota '+fmt(e.nota):'por calificar'}`}));
   items.sort((a,b)=>(b.d||'').localeCompare(a.d||'')||(b.t||0)-(a.t||0));
   if(!items.length)return `<div class="empty">Todavía no hay movimientos.</div>`;
   return `<div class="feed">${items.slice(0,10).map(i=>`<div><span class="ficon" style="background:${i.c}">${i.ic}</span><span>${i.txt}</span><span class="muted num" style="font-size:13px">${fmtDate(i.d)}</span></div>`).join('')}</div>`}
@@ -486,8 +491,8 @@ Reglas:${c.nf>1?`
 - Varía la posición de la respuesta correcta.
 - Pregunta solo lo que está en el material; no inventes datos.
 ${c.extra?'- Indicaciones del supervisor: '+c.extra+'\n':''}Responde SOLO con JSON con esta forma:
-{"forms":[{"title":"título corto del formulario","questions":[{"text":"pregunta","options":["opción 1","opción 2"],"correct":0}]}]}
-"correct" es el índice (desde 0) de la opción correcta.
+{"forms":[{"title":"título corto del formulario","questions":[{"text":"pregunta","options":["opción 1","opción 2"],"correct":0,"ref":"sección y página del documento donde está la respuesta","quote":"frase textual breve del documento que contiene la respuesta"}]}]}
+"correct" es el índice (desde 0) de la opción correcta. "ref" indica dónde está la respuesta usando los títulos, numerales y páginas del propio documento (ej.: "3.6 Secuestro · Guardia de seguridad · Pág. 6"). "quote" copia literalmente la frase del documento (máx. 200 caracteres).
 
 MATERIAL:
 ${text||'(el material está en la imagen adjunta)'}`}
@@ -499,7 +504,7 @@ function buildQuestions(data,c){
   const qs=(data&&data.questions)||[]; if(!qs.length)throw new Error('No se generaron preguntas.');
   return qs.slice(0,c.nq).map(q=>{let opts=(q.options||[]).map(String).slice(0,c.no);let ci=Math.max(0,Math.min(opts.length-1,+q.correct||0));
     const correct=opts[ci]; for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]]}
-    return {id:uid(),text:String(q.text||''),type:'single',max:0,options:opts.map(o=>({text:o,pts:o===correct?c.pts:0}))}}) }
+    return {id:uid(),text:String(q.text||''),type:'single',max:0,ref:String(q.ref||'').slice(0,200),quote:String(q.quote||'').slice(0,300),options:opts.map(o=>({text:o,pts:o===correct?c.pts:0}))}}) }
 function vGenerador(){
   const has=sampler; 
   return `<section class="panel" style="display:grid;gap:14px;border-top:4px solid var(--c2)">
@@ -532,6 +537,7 @@ function formAssignUI(f){
    <label class="f">Asignado a<select data-assign="${f.id}" id="as-${f.id}" ${done?'disabled':''}><option value="">— Sin asignar —</option>${OPS.map(o=>{const other=forms.find(x=>x.id!==f.id&&x.assignedTo===o.id&&!answeredBy(x,o.id));
      return `<option value="${o.id}" ${f.assignedTo===o.id?'selected':''}>${esc(o.name)}${other?' · ya tiene "'+esc(other.title.slice(0,28))+'"':''}</option>`}).join('')}</select></label>
    <div class="row" style="justify-content:space-between">${st}${done?'':f.published?`<button class="btn small" type="button" data-unpub="${f.id}">Ocultar</button>`:`<button class="btn small primary" type="button" data-pub="${f.id}">Publicar</button>`}</div></div>`}
+const isAiForm=f=>!!(f&&(f.ai||/^Generado desde /.test(f.desc||'')));
 const docName=n=>String(n||'').replace(/\.[a-z0-9]+$/i,'').replace(/[_]+/g,' ').trim();
 function groupOf(f){
   if(f.group)return {key:f.batch||f.group,name:f.group};
@@ -550,10 +556,11 @@ function formGroups(){
   return `<div style="display:grid;gap:12px">${gs.map(G=>{G.list.sort((a,b)=>(a.title||'').localeCompare(b.title||'','es',{numeric:true}));
     const asg=G.list.filter(f=>f.assignedTo).length,pub=G.list.filter(f=>f.published).length,done=G.list.filter(f=>f.assignedTo&&answeredBy(f,f.assignedTo)).length;
     const toPub=G.list.filter(f=>f.assignedTo&&!f.published&&!answeredBy(f,f.assignedTo)).length;
+    const resUnpub=evals.filter(e=>G.list.some(f=>f.id===e.formId)&&e.source==='operador'&&e.status==='calificada'&&!e.resultsPublished);
     return `<details class="fgroup" data-grp="${esc(G.key)}" ${S.openGrp.has(G.key)?'open':''}>
      <summary><span class="chev" aria-hidden="true">›</span><div class="min0" style="flex:1"><div class="eyebrow">${G.key==='_manual'?'Sin documento':'Documento'}${G.t?' · '+fmtDate(ymdLocal(G.t)):''}</div><b style="font-size:16px">${esc(G.name)}</b></div>
       <div class="row" style="gap:6px"><span class="pill p-none">${G.list.length} formulario${G.list.length>1?'s':''}</span><span class="pill ${asg===G.list.length?'p-good':'p-warn'}">${asg} asignado${asg===1?'':'s'}</span><span class="pill p-ok">${pub} publicado${pub===1?'':'s'}</span>${done?`<span class="pill p-good">${done} respondido${done===1?'':'s'}</span>`:''}</div></summary>
-     <div class="fgbody">${toPub?`<div class="row" style="margin-bottom:12px"><button class="btn small primary" type="button" data-pubgrp="${esc(G.key)}">Publicar los ${toPub} asignados</button><span class="muted" style="font-size:13px">Los que no tienen operador no se publican.</span></div>`:''}
+     <div class="fgbody">${resUnpub.length?`<div class="row" style="margin-bottom:12px"><button class="btn small primary" type="button" data-respubgrp="${resUnpub.map(e=>e.id).join(',')}">Publicar ${resUnpub.length} resultado${resUnpub.length>1?'s':''} a los operadores</button><span class="muted" style="font-size:13px">Las notas están ocultas hasta que las publiques.</span></div>`:''}${toPub?`<div class="row" style="margin-bottom:12px"><button class="btn small primary" type="button" data-pubgrp="${esc(G.key)}">Publicar los ${toPub} asignados</button><span class="muted" style="font-size:13px">Los que no tienen operador no se publican.</span></div>`:''}
       <div class="grid-ops">${G.list.map(formCard).join('')}</div></div></details>`}).join('')}</div>`}
 function vFormularios(){
   if(sampler===undefined)getSampler().then(()=>{if(S.view==='formularios')render()});
@@ -579,6 +586,7 @@ function vEditor(){
      <button class="btn small danger" type="button" data-qdel>Quitar</button></div></div>
    <div class="qhead"><input id="qt-${q.id}" data-qk="text" value="${esc(q.text)}" placeholder="Escribe la pregunta">
      <select id="qy-${q.id}" data-qk="type"><option value="single" ${q.type==='single'?'selected':''}>Opción única</option><option value="multi" ${q.type==='multi'?'selected':''}>Casillas (varias)</option><option value="text" ${q.type==='text'?'selected':''}>Respuesta abierta</option></select></div>
+   ${d.ai&&q.type!=='text'?`<label class="f">Dónde está la respuesta en el documento<input id="qr-${q.id}" data-qk="ref" value="${esc(q.ref||'')}" placeholder="Ej.: 3.6 Secuestro · Guardia de seguridad · Pág. 6"></label>`:''}
    ${q.type==='text'?`<label class="f" style="max-width:220px">Puntaje máximo (lo asignas al calificar)<input type="number" min="0" step="0.5" id="qm-${q.id}" data-qk="max" value="${q.max}"></label>`
    :`<div style="display:grid;gap:8px"><div class="optrow eyebrow"><span>Opción</span><span>Puntos</span><span></span></div>
      ${q.options.map((o,j)=>`<div class="optrow ${+o.pts>0&&+o.pts===qMax(q)?'ok':''}" data-oj="${j}"><input id="ot-${q.id}-${j}" data-ok="text" value="${esc(o.text)}" placeholder="Texto de la opción"><input type="number" step="0.5" id="op-${q.id}-${j}" data-ok="pts" value="${o.pts}"><button class="btn small" type="button" data-odel aria-label="Quitar opción">✕</button></div>`).join('')}
@@ -628,7 +636,11 @@ function answerText(q,a){ if(q.type==='text')return a||'(sin respuesta)'; if(q.t
   const arr=Array.isArray(a)?a:[]; return arr.length?arr.map(i=>(q.options[i]||{}).text).join(', '):'(ninguna)' }
 function vPendientes(){
   const list=evals.filter(e=>e.status==='pendiente').sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-  return `<div><div class="eyebrow">Respuestas enviadas por operadores</div><h2>Por calificar</h2></div>${list.length?evalTable(list,true):`<div class="empty">No hay respuestas pendientes de calificar.</div>`}`;
+  const unpub=evals.filter(e=>e.source==='operador'&&e.status==='calificada'&&!e.resultsPublished).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  return `<div><div class="eyebrow">Respuestas enviadas por operadores</div><h2>Por calificar</h2></div>${list.length?evalTable(list,true):`<div class="empty">No hay respuestas pendientes de calificar.</div>`}
+  <section class="panel" style="display:grid;gap:10px"><div class="spread"><div><h3>Resultados por publicar</h3><p class="muted" style="margin:4px 0 0">Exámenes calificados que el operador todavía no ve. Ábrelos para revisar o publícalos todos.</p></div>
+   ${unpub.length?`<button class="btn primary" type="button" data-respubgrp="${unpub.map(e=>e.id).join(',')}">Publicar los ${unpub.length} resultados</button>`:''}</div>
+   ${unpub.length?evalTable(unpub,true):'<div class="empty">No hay resultados pendientes de publicar.</div>'}</section>`;
 }
 function vReview(){
   const e=evals.find(x=>x.id===S.review.id); if(!e)return vPendientes(); const R=S.review;
@@ -643,12 +655,22 @@ function vReview(){
 }
 function vDetail(){
   const e=evals.find(x=>x.id===S.detail); if(!e)return vPanel(); const qs=e.questions||[];
+  if(me&&!resVisible(e))return `<div class="spread"><div><div class="eyebrow">${esc(opName(e.operator))} · ${fmtDate(e.date)}</div><h2>${esc(e.formTitle)}</h2></div><button class="btn" type="button" data-op="${e.operator}">Volver a mi perfil</button></div>
+    <div class="panel" style="display:grid;gap:8px;text-align:center;padding:30px"><h3>Respuestas enviadas</h3><p class="muted" style="margin:0">El supervisor revisará y publicará tu calificación. Cuando lo haga, aquí verás tu nota y la revisión de cada pregunta.</p></div>`;
+  const showRefs=e.status==='calificada'&&(e.ai||isAiForm(forms.find(f=>f.id===e.formId)))&&qs.some(q=>q.ref||q.quote);
   return `<div class="spread"><div><div class="eyebrow">${esc(opName(e.operator))} · ${fmtDate(e.date)}</div><h2>${esc(e.formTitle)}</h2></div>
-   <div class="row"><button class="btn" type="button" data-op="${e.operator}">${me?'Volver a mi perfil':'Ver perfil'}</button>${admin?`<button class="btn" type="button" data-rvopen="${e.id}">${e.status==='calificada'?'Modificar notas':'Calificar'}</button>`:''}</div></div>
+   <div class="row"><button class="btn" type="button" data-op="${e.operator}">${me?'Volver a mi perfil':'Ver perfil'}</button>${admin?`<button class="btn" type="button" data-rvopen="${e.id}">${e.status==='calificada'?'Modificar notas':'Calificar'}</button>`:''}${admin&&e.source==='operador'&&e.status==='calificada'?(e.resultsPublished?`<button class="btn" type="button" data-respub="${e.id}" data-v="0">Ocultar resultado</button>`:`<button class="btn primary" type="button" data-respub="${e.id}" data-v="1">Publicar resultado al operador</button>`):''}</div></div>
+  ${admin&&e.source==='operador'?`<div class="banner" style="${e.resultsPublished?'background:var(--good-soft);color:var(--good)':''}">${e.resultsPublished?'Resultado publicado: el operador ya ve su nota y la revisión.':e.status==='calificada'?'Resultado sin publicar: el operador todavía no ve su nota.':'Califica primero; luego podrás publicar el resultado.'}</div>`:''}
   <section class="kpis"><div class="kpi"><div class="eyebrow">Nota</div><div class="v">${e.status==='calificada'?fmt(e.nota):'—'}</div><div style="margin-top:6px">${e.status==='calificada'?pill(e.nota):'<span class="pill p-warn">Por calificar</span>'}</div></div>
    <div class="kpi"><div class="eyebrow">Puntaje</div><div class="v" style="font-size:22px">${e.status==='calificada'?fmt(e.total)+' / '+fmt(e.max):'—'}</div></div></section>
   ${e.comment?`<section class="panel"><div class="eyebrow">Comentario del supervisor</div><p style="margin:6px 0 0;white-space:pre-wrap">${esc(e.comment)}</p></section>`:''}
-  <section class="panel" style="display:grid;gap:12px">${qs.map((q,i)=>`<div style="display:grid;gap:6px"><div class="spread"><b>${i+1}. ${esc(q.text)}</b>${e.status==='calificada'?`<span class="ptsbadge">${fmt((e.scores||{})[q.id])} / ${fmt(qMax(q))} pts</span>`:''}</div><div class="answer">${esc(answerText(q,(e.answers||{})[q.id]))}</div></div>`).join('')}</section>`;
+  ${showRefs?`<div class="banner" style="background:var(--c2s);color:var(--c2)">Revisión del examen${e.docName?` · documento: <b>${esc(e.docName)}</b>`:''}. En cada pregunta ves dónde está la respuesta para que repases.</div>`:''}
+  <section class="panel" style="display:grid;gap:14px">${qs.map((q,i)=>{const sc=(e.scores||{})[q.id],ok=q.type!=='text'&&e.status==='calificada'?(+sc>=qMax(q)&&qMax(q)>0):null;
+   const corr=q.type==='single'?(q.options||[]).find(o=>+o.pts===qMax(q)&&qMax(q)>0):null;
+   return `<div class="qrev ${ok===true?'ok':ok===false?'bad':''}"><div class="spread"><b>${i+1}. ${esc(q.text)}</b>${e.status==='calificada'?`<span class="ptsbadge">${fmt(sc)} / ${fmt(qMax(q))} pts</span>`:''}</div>
+    <div class="answer">${ok===true?'<b style="color:var(--good)">Correcta · </b>':ok===false?'<b style="color:var(--bad)">Incorrecta · </b>':''}Respuesta: ${esc(answerText(q,(e.answers||{})[q.id]))}</div>
+    ${showRefs&&ok===false&&corr?`<div style="font-size:14px">Respuesta correcta: <b>${esc(corr.text)}</b></div>`:''}
+    ${showRefs&&(q.ref||q.quote)?`<div class="docref"><div class="eyebrow">Dónde está en el documento</div>${q.ref?`<b>${esc(q.ref)}</b>`:''}${q.quote?`<div class="muted" style="font-style:italic;margin-top:2px">“${esc(q.quote)}”</div>`:''}</div>`:''}</div>`}).join('')}</section>`;
 }
 
 /* ---------- asistencia ---------- */
@@ -810,7 +832,9 @@ main.addEventListener('click',async ev=>{
   if(d.opfill&&me&&!visibleFor(forms.find(x=>x.id===d.opfill)||{},me))return toast('Este formulario ya no está disponible');
   if(d.opfill)return go('opfill',{fill:{mode:'op',op:S.op,formId:d.opfill,answers:{},manual:{},comment:'',date:today()}});
   if(d.rvopen){const e=evals.find(x=>x.id===d.rvopen);const sc={};(e.questions||[]).forEach(q=>sc[q.id]=e.status==='calificada'?(e.scores||{})[q.id]:(q.type==='text'?'':qAuto(q,(e.answers||{})[q.id])));return go('review',{review:{id:e.id,scores:sc,comment:e.comment||''}})}
-  if(d.editform){const f=forms.find(x=>x.id===d.editform);return go('editor',{draft:JSON.parse(JSON.stringify({id:f.id,title:f.title||'',desc:f.desc||'',openToOps:!!f.openToOps,questions:f.questions||[],group:f.group||null,batch:f.batch||null}))})}
+  if(d.editform){const f=forms.find(x=>x.id===d.editform);return go('editor',{draft:JSON.parse(JSON.stringify({id:f.id,title:f.title||'',desc:f.desc||'',openToOps:!!f.openToOps,questions:f.questions||[],group:f.group||null,batch:f.batch||null,ai:isAiForm(f)}))})}
+  if(d.respub)return attWrite(()=>db.doc('evals/'+d.respub).update({resultsPublished:d.v==='1',resultsPublishedAt:Date.now()}),d.v==='1'?'Resultado publicado al operador':'Resultado oculto');
+  if(d.respubgrp){const ids=d.respubgrp.split(',');return attWrite(async()=>{for(const id of ids)await db.doc('evals/'+id).update({resultsPublished:true,resultsPublishedAt:Date.now()})},ids.length+' resultados publicados')}
   if(d.pub){const f=forms.find(x=>x.id===d.pub);if(!f.assignedTo&&!f.openToOps)return toast('Asigna el formulario a un operador antes de publicarlo');
     return attWrite(()=>db.doc('forms/'+f.id).update({published:true,publishedAt:Date.now()}),f.assignedTo?'Publicado: '+opName(f.assignedTo)+' ya lo ve en su perfil':'Publicado para todos los operadores')}
   if(d.pubgrp){const list=forms.filter(f=>groupOf(f).key===d.pubgrp&&f.assignedTo&&!f.published&&!answeredBy(f,f.assignedTo));
@@ -883,7 +907,7 @@ main.addEventListener('input',ev=>{
   if(d.dk&&S.draft){S.draft[d.dk]=t.type==='checkbox'?t.checked:t.value;return}
   const qEl=t.closest('[data-qi]');
   if(qEl&&S.draft){const q=S.draft.questions[+qEl.dataset.qi];
-    if(d.qk==='text')q.text=t.value; if(d.qk==='max'){q.max=+t.value||0}
+    if(d.qk==='text')q.text=t.value; if(d.qk==='ref')q.ref=t.value; if(d.qk==='max'){q.max=+t.value||0}
     if(d.ok){const o=q.options[+t.closest('[data-oj]').dataset.oj];o[d.ok]=d.ok==='pts'?(+t.value||0):t.value}
     const fm=document.getElementById('fMax');if(fm)fm.textContent=fmt(formMax(S.draft.questions));return}
   if(S.fill){ if(d.ans){S.fill.answers[d.ans]=t.value} if(d.man!==undefined){S.fill.manual[d.man]=t.value;updateLive()}
@@ -960,8 +984,8 @@ function refreshReview(){const e=evals.find(x=>x.id===S.review.id);if(!e)return;
 async function finishGen(fs){
   const desc='Generado desde '+(GEN.name||'archivo')+'. Revisa las preguntas antes de usarlo.';const group=docName(GEN.name)||'Documento';const batch=uid();
   S.openGrp=new Set([batch]);
-  if(fs.length===1)return go('editor',{draft:{id:null,title:fs[0].title,desc,openToOps:true,questions:fs[0].questions,group,batch}});
-  try{for(const f of fs)await db.collection('forms').add({title:f.title,desc,openToOps:true,questions:f.questions,group,batch,createdAt:Date.now(),updatedAt:Date.now()});
+  if(fs.length===1)return go('editor',{draft:{id:null,title:fs[0].title,desc,openToOps:true,questions:fs[0].questions,group,batch,ai:true}});
+  try{for(const f of fs)await db.collection('forms').add({title:f.title,desc,openToOps:true,questions:f.questions,group,batch,ai:true,createdAt:Date.now(),updatedAt:Date.now()});
     toast(fs.length+' formularios creados. Revisa cada uno con Editar.');go('formularios')}catch(e){genErr('No se pudieron guardar los formularios.')}}
 function genErr(m){const el=document.getElementById('gErr');if(el){el.textContent=m;el.hidden=false}else toast(m)}
 main.addEventListener('change',async ev=>{if(ev.target.id!=='gFile')return;const f=ev.target.files[0];GEN.file=f||null;GEN.text='';GEN.name=f?f.name:'';const info=document.getElementById('gInfo');const er=document.getElementById('gErr');if(er)er.hidden=true;
@@ -976,7 +1000,7 @@ async function saveForm(){
   if(!d.questions.length)return toast('Agrega al menos una pregunta');
   const bad=d.questions.findIndex(q=>!q.text.trim()||(q.type!=='text'&&(q.options.length<2||q.options.some(o=>!String(o.text).trim()))));
   if(bad>=0)return toast(`Revisa la pregunta ${bad+1}: necesita texto y al menos 2 opciones con nombre`);
-  const data={title:d.title.trim(),desc:d.desc.trim(),openToOps:!!d.openToOps,questions:d.questions,updatedAt:Date.now()};if(d.group){data.group=d.group;data.batch=d.batch}
+  const data={title:d.title.trim(),desc:d.desc.trim(),openToOps:!!d.openToOps,questions:d.questions,updatedAt:Date.now()};if(d.group){data.group=d.group;data.batch=d.batch}if(d.ai)data.ai=true;
   try{ if(d.id)await db.doc('forms/'+d.id).update(data); else await db.collection('forms').add({...data,createdAt:Date.now()}); toast('Formulario guardado'); go('formularios') }
   catch(e){toast('No se pudo guardar: '+(e.message||e.code))}
 }
@@ -997,8 +1021,8 @@ async function submitOp(){
   const miss=form.questions.findIndex(q=>q.type==='single'&&(f.answers[q.id]==null));
   if(miss>=0)return toast(`Falta responder la pregunta ${miss+1}`);
   const auto=form.questions.every(q=>q.type!=='text');const r=auto?computeFill(form,{...f,manual:{}}):null;
-  try{await db.collection('evals').add({operator:f.op,formId:form.id,formTitle:form.title,questions:snapshotForm(form),answers:f.answers,scores:auto?r.scores:{},total:auto?r.total:0,max:formMax(form.questions),nota:auto?Math.round(r.nota*100)/100:0,
-    comment:'',date:today(),status:auto?'calificada':'pendiente',source:'operador',createdAt:Date.now()});toast(auto?`Respuestas enviadas. Tu nota: ${fmt(r.nota)} / 10`:'Respuestas enviadas. El supervisor las calificará.');go('perfil',{op:f.op,ptab:'calificaciones'})}
+  try{const ref=await db.collection('evals').add({operator:f.op,formId:form.id,formTitle:form.title,ai:isAiForm(form),docName:isAiForm(form)?groupOf(form).name:'',questions:snapshotForm(form),answers:f.answers,scores:auto?r.scores:{},total:auto?r.total:0,max:formMax(form.questions),nota:auto?Math.round(r.nota*100)/100:0,
+    comment:'',date:today(),status:auto?'calificada':'pendiente',source:'operador',resultsPublished:false,createdAt:Date.now()});toast('Respuestas enviadas. El supervisor publicará tu calificación.');go('perfil',{op:f.op,ptab:'calificaciones'})}
   catch(e){toast('No se pudieron enviar. Pide al supervisor permiso para responder.')}
 }
 async function saveReview(){
